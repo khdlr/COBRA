@@ -221,7 +221,7 @@ if __name__ == '__main__':
     last_improvement = 0
     wandb.init(project='DeepSnake CALFIN', config=config)
 
-    for epoch in range(1, 1001):
+    for epoch in range(1, 501):
         wandb.log({f'epoch': epoch}, step=epoch)
         prog = tqdm(train_loader, desc=f'Ep {epoch} Trn')
         trn_metrics = {}
