@@ -137,14 +137,14 @@ def train_step(batch, state, key, net):
 def val_step(batch, state, key, net):
     imagery, mask, snake = prep(batch)
 
-    preds, _ = net(state.params, state.buffers, key, imagery, is_training=False)
-    metrics = loss_functions.call_loss(loss_fn, preds, mask, snake)
+    sampled_pred_steps = []
+    subkeys = jax.random.split(key, 4)
+    for subkey in subkeys:
+        pred_steps, _ = net(state.params, state.buffers, subkey, imagery, is_training=False)
+        sampled_pred_steps.append(pred_steps)
 
-    if isinstance(preds, list):
-        vertices = preds
-        preds = preds[-1]
-    else:
-        vertices = [preds]
+    metrics = loss_functions.call_loss(loss_fn, sampled_pred_steps[0], mask, snake)
+    preds = sampled_pred_steps[0][-1]
 
     out = {
         'imagery': imagery,
@@ -152,11 +152,13 @@ def val_step(batch, state, key, net):
         'mask': mask,
     }
 
+    # TODO: Random sampling probably broke this following code for
+    # segmentation based models
     if preds.ndim > 3:
         out['segmentation'] = preds
         preds = utils.snakify(preds, snake.shape[-2])
-        vertices = [preds]
-    out['predictions'] = vertices
+        sampled_pred_steps = [preds]
+    out['predictions'] = sampled_pred_steps
 
     for m in METRICS:
         metrics.update(loss_functions.call_loss(METRICS[m], preds, mask, snake, key=m))
@@ -256,10 +258,11 @@ if __name__ == '__main__':
               if m not in val_metrics: val_metrics[m] = []
               val_metrics[m].append(metrics[m])
 
+            out = jax.tree_map(lambda x: x[0], out) # Select first example from batch
             imagery     = out['imagery'][0]
             snake       = out['snake'][0]
             predictions = [p[0] for p in out['predictions']]
-            log_anim(imagery, snake, predictions, f"Animated/{step}", epoch)
+            log_anim(out, f"Animated/{step}", epoch)
             if 'segmentation' in out:
                 segmentation = out['segmentation'][0]
                 mask = out['mask'][0]

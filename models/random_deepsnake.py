@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import haiku as hk
+from functools import partial
 
 from . import backbones
 from . import nnutils as nn
@@ -35,7 +36,7 @@ class RandomDeepSnake():
             feature_maps = [nn.channel_dropout(f, 0.5) for f in feature_maps]
 
         init_keys = jax.random.split(hk.next_rng_key(), imagery.shape[0])
-        make_bezier = jax.vmap(partial(random_bezier, vertices=vertices))
+        make_bezier = jax.vmap(partial(random_bezier, vertices=self.vertices))
         vertices = make_bezier(init_keys)
         steps = [vertices]
 
