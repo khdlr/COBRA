@@ -93,6 +93,7 @@ class CalfinDataset(torch.utils.data.Dataset):
         super().__init__()
         self.config = yaml.load(open('config.yml'), Loader=yaml.SafeLoader)
 
+        self.mode = mode
         self.root = Path(self.config['data_root']) / mode
 
         self.cachedir = self.root.parent / 'cache'
@@ -176,9 +177,15 @@ class CalfinDataset(torch.utils.data.Dataset):
             #       f'Funky: {count - taken - zeros}')
 
     def __getitem__(self, idx):
-        snake = self.snake_cache[idx]
+        refchannel = 2
+        if self.mode == 'train':
+            refchannel = random.randint(0, 2)
+
+        ref   = self.tile_cache[idx, ..., refchannel]
         mask  = self.mask_cache[idx]
-        ref   = self.tile_cache[idx]
+        snake = self.snake_cache[idx]
+
+        ref   = np.expand_dims(ref, -1)
 
         return ref, mask, snake
 

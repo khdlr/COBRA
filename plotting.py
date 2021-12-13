@@ -13,16 +13,13 @@ import base64
 from argparse import ArgumentParser
 from einops import rearrange
 
-RGB = [0, 1, 2]
-
-
 def log_segmentation(img, mask, pred, tag, step):
     H, W, C = img.shape
 
     fig, axs = plt.subplots(1, 3, figsize=(10, 3))
     for ax in axs:
         ax.axis('off')
-    axs[0].imshow(np.asarray(img[:, :, RGB]))
+    axs[0].imshow(np.asarray(img))
     axs[1].imshow(np.asarray(pred[:,:,0]), cmap='gray', vmin=-1, vmax=1)
     axs[2].imshow(np.asarray(mask), cmap='gray', vmin=0, vmax=1)
 
@@ -33,8 +30,7 @@ def log_segmentation(img, mask, pred, tag, step):
 def log_anim(img, truth, pred, tag, step):
     H, W, C = img.shape
 
-    img = img[:, :, RGB]
-    img = (255 * img[:,:, RGB]).astype(np.uint8)
+    img = np.clip(255 * img, 0, 255).astype(np.uint8)
     img = Image.fromarray(np.asarray(img))
     buffer = BytesIO()
     img.save(buffer, format='JPEG')
