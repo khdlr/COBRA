@@ -53,14 +53,14 @@ def numpy_collate(batch):
         return np.array(batch)
 
 
-def get_loader(batch_size, data_threads, mode, rng_key):
-    data = CalfinDataset(mode=mode)
+def get_loader(batch_size, data_threads, mode, rng_key=None, drop_last=True, subtiles=True):
+    data = CalfinDataset(mode=mode, subtiles=subtiles)
 
     kwargs = dict(
         batch_size = batch_size,
         num_workers = data_threads,
         collate_fn = numpy_collate,
-        drop_last = True
+        drop_last = drop_last
     )
     if mode == 'train':
         kwargs['sampler'] = DeterministicShuffle(len(data), rng_key)
@@ -90,16 +90,21 @@ def snakify(gt, vertices):
 
 
 class CalfinDataset(torch.utils.data.Dataset):
-    def __init__(self, mode):
+    def __init__(self, mode, subtiles=True):
         super().__init__()
-        self.config = yaml.load(open('config.yml'), Loader=yaml.SafeLoader)
-
         self.mode = mode
+        self.subtiles = subtiles
+
+        self.config = yaml.load(open('config.yml'), Loader=yaml.SafeLoader)
         self.root = Path(self.config['data_root']) / mode
 
         self.cachedir = self.root.parent / 'cache'
         self.cachedir.mkdir(exist_ok=True)
-        self.confighash = md5((self.config['tile_size'], self.config['vertices']))
+
+        if self.subtiles:
+            self.confighash = md5((self.config['tile_size'], self.config['vertices']))
+        else:
+            self.confighash = md5((self.config['tile_size'], self.config['vertices'], True))
 
         self.tile_cache_path   = self.cachedir / f'{mode}_tile_{self.confighash}.npy'
         self.mask_cache_path  = self.cachedir / f'{mode}_mask_{self.confighash}.npy'
@@ -148,6 +153,9 @@ class CalfinDataset(torch.utils.data.Dataset):
             if len(full_snake) == 1:
                 taken += 1
                 yield(full_tile, full_mask, full_snake[0])
+
+            if not self.subtiles:
+                continue
 
             for y in np.linspace(0, H-tilesize, 4).astype(np.int32):
                 for x in np.linspace(0, W-tilesize, 4).astype(np.int32):

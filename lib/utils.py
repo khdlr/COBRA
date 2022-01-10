@@ -1,6 +1,8 @@
 import jax
 import jax.numpy as jnp
 import haiku as hk
+import optax
+import augmax
 import numpy as np
 from einops import rearrange
 from jax.experimental import host_callback
@@ -8,6 +10,88 @@ from skimage.measure import find_contours
 from functools import partial
 from typing import Union, Sequence, Optional, Tuple
 from subprocess import check_output
+from typing import NamedTuple
+import pickle
+from inspect import signature
+
+
+class TrainingState(NamedTuple):
+    params: hk.Params
+    buffers: hk.State
+    opt: optax.OptState
+
+
+def changed_state(state, params=None, buffers=None, opt=None):
+    return TrainingState(
+        params = state.params if params is None else params,
+        buffers = state.buffers if buffers is None else buffers,
+        opt = state.opt if opt is None else opt,
+    )
+
+
+def save_state(state, out_path):
+    state = jax.device_get(state)
+    with out_path.open('wb') as f:
+        pickle.dump(state, f)
+
+
+def load_state(checkpoint_path):
+    with open(checkpoint_path, 'rb') as f:
+        state = pickle.load(f)
+    return state
+
+
+def prep(batch, key=None, augment=False, input_types=None):
+    ops = []
+    if augment: ops += [
+        augmax.HorizontalFlip(),
+        augmax.VerticalFlip(),
+        augmax.Rotate90(),
+        augmax.Rotate(15),
+        # augmax.Warp(coarseness=16)
+    ]
+    ops += [augmax.ByteToFloat()]
+    # if augment: ops += [
+    #     augmax.ChannelShuffle(p=0.1),
+    #     augmax.Solarization(p=0.1),
+    # ]
+
+    if input_types is None:
+        input_types = [
+            augmax.InputType.IMAGE,
+            augmax.InputType.MASK,
+            augmax.InputType.CONTOUR,
+        ]
+    chain = augmax.Chain(*ops, input_types=input_types)
+    if augment == False:
+        key = jax.random.PRNGKey(0)
+    subkeys = jax.random.split(key, batch[0].shape[0])
+    transformation = jax.vmap(chain)
+    outputs = list(transformation(subkeys, *batch))
+    for i, typ in enumerate(input_types):
+        if typ == augmax.InputType.CONTOUR:
+            outputs[i] = 2 * (outputs[i] / outputs[0].shape[1]) - 1.0
+
+    return outputs
+
+
+def call_loss(loss_fn, prediction, mask, snake, key='loss'):
+    sig = signature(loss_fn)
+    args = {}
+    if 'snake' in sig.parameters:
+        args['snake'] = snake
+    if 'mask' in sig.parameters:
+        args['mask'] = mask
+
+    loss_terms = {}
+    if isinstance(prediction, list):
+        for i, pred in enumerate(prediction, 1):
+            loss_terms[f'{key}_{i}'] = jnp.mean(jax.vmap(loss_fn)(prediction=pred, **args))
+    else:
+        loss_terms[key] = jnp.mean(jax.vmap(loss_fn)(prediction=prediction, **args))
+
+    return loss_terms
+
 
 
 def distance_matrix(a, b):
@@ -44,7 +128,6 @@ def fmt(xs, extra=None):
 def assert_git_clean():
     diff = check_output(['git', 'diff', 'HEAD'])
     assert not diff, "Won't run on a dirty git state!"
-        
 
 
 def snakify(mask, vertices):

@@ -4,31 +4,10 @@ from jax.scipy.special import logsumexp
 import haiku as hk
 
 from abc import ABC, abstractmethod
-from inspect import signature
 
-from utils import pad_inf, fmt, distance_matrix, min_pool
-from metrics import squared_distance_points_to_best_segment
-from lib.jump_flood import jump_flood
+from .utils import pad_inf, fmt, distance_matrix, min_pool
+from .jump_flood import jump_flood
 from einops import rearrange
-
-
-
-def call_loss(loss_fn, prediction, mask, snake, key='loss'):
-    sig = signature(loss_fn)
-    args = {}
-    if 'snake' in sig.parameters:
-        args['snake'] = snake
-    if 'mask' in sig.parameters:
-        args['mask'] = mask
-
-    loss_terms = {}
-    if isinstance(prediction, list):
-        for i, pred in enumerate(prediction, 1):
-            loss_terms[f'{key}_{i}'] = jnp.mean(jax.vmap(loss_fn)(prediction=pred, **args))
-    else:
-        loss_terms[key] = jnp.mean(jax.vmap(loss_fn)(prediction=prediction, **args))
-
-    return loss_terms
 
 
 def l2_loss(prediction, snake):
@@ -94,7 +73,7 @@ def calfin_loss(prediction, mask):
 class AbstractDTW(ABC):
     def __init__(self, bandwidth=None):
         self.bandwidth = bandwidth
-        
+
     @abstractmethod
     def minimum(self, *args):
         pass
@@ -115,7 +94,7 @@ class AbstractDTW(ABC):
                 jnp.inf,
                 D
             )
-        
+
         y, x = jnp.mgrid[0:W+H-1, 0:H]
         indices = y - x
         model_matrix = jnp.where((indices < 0) | (indices >= W),
@@ -197,26 +176,6 @@ class SoftDTW(AbstractDTW):
 
     def minimum(self, args):
         return self.minimum_impl(args)
-
-
-def forward_mae(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(prediction, snake)
-    return jnp.mean(jnp.sqrt(squared_dist))
-
-
-def backward_mae(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(snake, prediction)
-    return jnp.mean(jnp.sqrt(squared_dist))
-
-
-def forward_rmse(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(prediction, snake)
-    return jnp.sqrt(jnp.mean(squared_dist))
-
-
-def backward_rmse(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(snake, prediction)
-    return jnp.sqrt(jnp.mean(squared_dist))
 
 
 def closest_point_loss(prediction, mask):

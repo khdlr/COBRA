@@ -2,6 +2,16 @@ import jax
 import jax.numpy as jnp
 
 
+def mae(prediction, snake):
+    squared_distances = jnp.sum(jnp.square(prediction - snake), axis=-1)
+    return jnp.mean(jnp.sqrt(squared_distances))
+
+
+def rmse(prediction, snake):
+    squared_distances = jnp.sum(jnp.square(prediction - snake), axis=-1)
+    return jnp.sqrt(jnp.mean(squared_distances))
+
+
 def squared_distance_point_to_linesegment(point, linestart, lineend):
     p = point
     b = lineend
@@ -51,3 +61,33 @@ def rmse_line_to_line(line1, line2):
     """
     squared_dist = squared_distance_points_to_best_segment(line1, line2)
     return jnp.sqrt(jnp.mean(squared_dist))
+
+
+def forward_mae(prediction, snake):
+    squared_dist = squared_distance_points_to_best_segment(prediction, snake)
+    return jnp.mean(jnp.sqrt(squared_dist))
+
+
+def backward_mae(prediction, snake):
+    squared_dist = squared_distance_points_to_best_segment(snake, prediction)
+    return jnp.mean(jnp.sqrt(squared_dist))
+
+
+def forward_rmse(prediction, snake):
+    squared_dist = squared_distance_points_to_best_segment(prediction, snake)
+    return jnp.sqrt(jnp.mean(squared_dist))
+
+
+def backward_rmse(prediction, snake):
+    squared_dist = squared_distance_points_to_best_segment(snake, prediction)
+    return jnp.sqrt(jnp.mean(squared_dist))
+
+
+def symmetric_mae(prediction, snake):
+    return 0.5 * forward_mae(prediction, snake) + 0.5 * backward_mae(prediction, snake)
+
+
+def symmetric_rmse(prediction, snake):
+    return 0.5 * forward_rmse(prediction, snake) + 0.5 * backward_rmse(prediction, snake)
+
+

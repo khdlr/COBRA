@@ -13,6 +13,16 @@ import base64
 from argparse import ArgumentParser
 from einops import rearrange
 
+
+def log_metrics(metrics, prefix, epoch, do_print=True):
+    metrics = {m: np.mean(metrics[m]) for m in metrics}
+
+    wandb.log({f'{prefix}/{m}': metrics[m] for m in metrics}, step=epoch)
+    if do_print:
+        print(f'{prefix}/metrics')
+        print(', '.join(f'{k}: {v:.3f}' for k, v in metrics.items()))
+
+
 def log_segmentation(img, mask, pred, tag, step):
     H, W, C = img.shape
 

@@ -1,5 +1,5 @@
 # Model Specification
-model: RandomDeepSnake
+model: DeepSnake
 model_args:
   backbone: Xception
   model_dim: 1024

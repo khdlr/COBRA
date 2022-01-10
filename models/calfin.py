@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import haiku as hk
 
-from .backbones import Xception
+from .backbones import CALFINXception
 from . import nnutils as nn
 
 
@@ -15,7 +15,7 @@ class CFM:
 
     def __call__(self, x, is_training=False):
         B, H, W, C = x.shape
-        _, _, skip3, x = Xception()(x, is_training)
+        _, _, skip3, x = CALFINXception()(x, is_training)
 
         # Decoder
         x = nn.upsample(x, shp=[H//4, W//4])
