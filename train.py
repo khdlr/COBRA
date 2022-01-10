@@ -181,7 +181,7 @@ def log_metrics(metrics, prefix, epoch, do_print=True):
 
 
 if __name__ == '__main__':
-    utils.assert_git_clean()
+    # utils.assert_git_clean()
     train_key = jax.random.PRNGKey(42)
     persistent_val_key = jax.random.PRNGKey(27)
     multiplier = 64
@@ -245,7 +245,6 @@ if __name__ == '__main__':
         ckpt_dir = Path('checkpoints')
         ckpt_dir.mkdir(exist_ok=True)
         save_state(state, ckpt_dir / f'{wandb.run.id}-latest.npz')
-        # save_state(state, ckpt_dir / f'{wandb.run.id}-{epoch:04d}.npz')
 
         # Validate
         val_key = persistent_val_key

@@ -28,9 +28,9 @@ def log_segmentation(img, mask, pred, tag, step):
 
 
 def log_anim(data, tag, step):
-    H, W, C = img.shape
-
     img = np.clip(255 * data['imagery'], 0, 255).astype(np.uint8)
+    img = np.stack([img[..., 0]] * 3, axis=-1)
+    H, W, C = img.shape
     img = Image.fromarray(np.asarray(img))
     buffer = BytesIO()
     img.save(buffer, format='JPEG')

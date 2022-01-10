@@ -32,8 +32,8 @@ class RandomDeepSnake():
         backbone = self.backbone()
         feature_maps = backbone(imagery, is_training)
 
-        if is_training:
-            feature_maps = [nn.channel_dropout(f, 0.5) for f in feature_maps]
+        # if is_training:
+        feature_maps = [nn.channel_dropout(f, 0.5) for f in feature_maps]
 
         init_keys = jax.random.split(hk.next_rng_key(), imagery.shape[0])
         make_bezier = jax.vmap(partial(random_bezier, vertices=self.vertices))
