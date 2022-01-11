@@ -13,7 +13,7 @@ class ConvNeXt(hk.Module):
     """ConvNeXt backbone, adapted from
     https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py"""
     def __init__(self, depths=[3, 3, 9, 3], dims=[96, 192, 384, 768],
-            return_maps=[3], drop_path_rate=0.1):
+            return_maps=[1, 3], drop_path_rate=0.1):
         super().__init__()
 
         self.return_maps = return_maps
