@@ -65,8 +65,8 @@ class ConvNextBlock(hk.Module):
         self.pwconv1 = hk.Linear(4 * dim)
         self.pwconv2 = hk.Linear(dim)
 
-        self.layer_scale = hk.get_parameter('layer_scale', [dim],
-                init=lambda shp, dtype: 1e-6 * jnp.ones(shp, dtype))
+        # self.layer_scale = hk.get_parameter('layer_scale', [dim],
+        #         init=lambda shp, dtype: 1e-6 * jnp.ones(shp, dtype))
 
     def __call__(self, x, is_training):
         assert x.shape[-1] == self.dim
@@ -77,7 +77,7 @@ class ConvNextBlock(hk.Module):
         x = self.pwconv1(x)
         x = jax.nn.gelu(x)
         x = self.pwconv2(x)
-        x = self.layer_scale * x
+        # x = self.layer_scale * x
 
         if is_training:
             x = inputs + nn.sample_dropout(x, self.drop_path)

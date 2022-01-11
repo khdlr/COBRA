@@ -42,7 +42,7 @@ def sample_dropout(x, rate):
     mask_shape = (x.shape[0], *((1,) * (x.ndim-1)))
 
     keep = jax.random.bernoulli(hk.next_rng_key(), keep_rate, shape=mask_shape)
-    return keep * x / keep_rate
+    return keep * x
 
 
 class ConvBNAct(hk.Module):
