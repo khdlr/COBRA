@@ -95,7 +95,7 @@ if __name__ == '__main__':
     # initialize data loading
     train_key, subkey = jax.random.split(train_key)
     train_loader = get_loader(config['batch_size'], 4, 'train', subkey)
-    val_loader   = get_loader(16, 1, 'validation', None, subtiles=False)
+    val_loader   = get_loader(4, 1, 'validation', None, subtiles=False)
 
     img, *_ = prep(next(iter(train_loader)))
     S, params, buffers = models.get_model(config, img)
