@@ -1,7 +1,7 @@
 # Model Specification
 model: DeepSnake
 model_args:
-  backbone: XceptionTiny
+  backbone: XceptionFast
   model_dim: 1024
   iterations: 4
   coord_features: true

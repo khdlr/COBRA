@@ -42,6 +42,41 @@ class Xception(hk.Module):
         return [skip3, x]
 
 
+class XceptionFast(hk.Module):
+    """Xception backbone like the one used in CALFIN"""
+    def __call__(self, x, is_training=False):
+        B, H, W, C = x.shape
+
+        # Backbone
+        x, skip1 = XceptionBlock([64, 64, 64], stride=2, return_skip=True)(x, is_training)
+        x, skip2 = XceptionBlock([128, 128, 128], stride=2, return_skip=True)(x, is_training)
+        x, skip3 = XceptionBlock([256, 256, 256], stride=2, return_skip=True)(x, is_training)
+        for i in range(8):
+            x = XceptionBlock([256, 256, 256], skip_type='sum', stride=1)(x, is_training)
+
+        x = XceptionBlock([256, 512, 512], stride=2)(x, is_training)
+        x = XceptionBlock([512, 512, 512], stride=1, rate=(1, 2, 4))(x, is_training)
+
+        # ASPP
+        # Image Feature branch
+        bD = hk.max_pool(x, window_shape=2, strides=2, padding='SAME')
+        bD = nn.ConvBNAct(128, 1, act='elu')(bD, is_training)
+        bD = nn.upsample(bD, factor=2)
+
+        b0 = nn.ConvBNAct(128, 1, act='elu')(x, is_training)
+        b1 = nn.SepConvBN(128, rate=1)(x, is_training)
+        b2 = nn.SepConvBN(128, rate=2)(x, is_training)
+        b3 = nn.SepConvBN(128, rate=3)(x, is_training)
+        b4 = nn.SepConvBN(128, rate=4)(x, is_training)
+        b5 = nn.SepConvBN(128, rate=5)(x, is_training)
+        x = jnp.concatenate([bD, b0, b1, b2, b3, b4, b5], axis=-1)
+
+        x = nn.ConvBNAct(512, 1, act='elu')(x, is_training)
+        skip3 = nn.ConvBNAct(128, 1, act='elu')(skip3, is_training)
+
+        return [skip3, x]
+
+
 class XceptionTiny(hk.Module):
     """Xception backbone like the one used in CALFIN"""
     def __call__(self, x, is_training=False):
