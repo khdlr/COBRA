@@ -68,8 +68,7 @@ class NextceptionBlock(hk.Module):
         residual = inputs
         for i, block in enumerate(self.blocks):
             residual = block(residual)
-            if i == 1:
-                skip = residual
+            print(residual.shape)
 
         shortcut = self.shortcut(inputs)
         outputs = residual + shortcut

@@ -42,6 +42,20 @@ class Xception(hk.Module):
         return [skip3, x]
 
 
+class XceptionTiny(hk.Module):
+    """Xception backbone like the one used in CALFIN"""
+    def __call__(self, x, is_training=False):
+        B, H, W, C = x.shape
+
+        # Backbone
+        x, skip1 = XceptionBlock([128, 128, 128], stride=2, return_skip=True)(x, is_training)
+        x, skip2 = XceptionBlock([256, 256, 256], stride=2, return_skip=True)(x, is_training)
+        x, skip3 = XceptionBlock([768, 768, 768], stride=2, return_skip=True)(x, is_training)
+        skip3 = nn.ConvBNAct(48, 1, act='elu')(skip3, is_training)
+
+        return [skip3, x]
+
+
 class XceptionBlock(hk.Module):
     def __init__(self, depth_list, stride, skip_type='conv',
                  rate=1, return_skip=False):
