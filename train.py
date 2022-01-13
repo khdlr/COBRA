@@ -30,9 +30,9 @@ def get_optimizer():
         peak_value=1e-3,
         warmup_steps=10 * 487,
         decay_steps=(500-10) * 487,
-        end_value=1e-5
+        end_value=4e-5
     )
-    return optax.adam(lr_schedule, b1=0.9, b2=0.99)
+    return optax.adam(lr_schedule, b1=0.5, b2=0.9)
 
 
 @partial(jax.jit, static_argnums=3)

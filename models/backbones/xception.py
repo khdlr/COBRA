@@ -36,8 +36,8 @@ class Xception(hk.Module):
         b5 = nn.SepConvBN(256, rate=5)(x, is_training)
         x = jnp.concatenate([bD, b0, b1, b2, b3, b4, b5], axis=-1)
 
-        x = nn.ConvBNAct(256, 1, act='elu')(x, is_training)
-        skip3 = nn.ConvBNAct(48, 1, act='elu')(skip3, is_training)
+        x = nn.ConvBNAct(512, 1, act='elu')(x, is_training)
+        skip3 = nn.ConvBNAct(64, 1, act='elu')(skip3, is_training)
 
         return [skip3, x]
 
