@@ -148,13 +148,8 @@ if __name__ == '__main__':
               val_metrics[m].append(metrics[m])
 
             out = jax.tree_map(lambda x: x[0], out) # Select first example from batch
-            imagery     = out['imagery'][0]
-            snake       = out['snake'][0]
-            predictions = [p[0] for p in out['predictions']]
             logging.log_anim(out, f"Animated/{step}", epoch)
             if 'segmentation' in out:
-                segmentation = out['segmentation'][0]
-                mask = out['mask'][0]
-                logging.log_segmentation(imagery, mask, segmentation, f'Segmentation/{step}', epoch)
+                logging.log_segmentation(out, f'Segmentation/{step}', epoch)
 
         logging.log_metrics(val_metrics, 'val', epoch)

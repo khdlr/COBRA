@@ -1,13 +1,20 @@
 # Model Specification
-model: DeepSnake
+
+model: UNet
 model_args:
-  backbone: Xception
-  model_dim: 1024
-  iterations: 4
-  coord_features: true
-  stop_grad: true
-  head: SnakeHead
-loss_function: SoftDTW(0.001, 8)
+  width: 64
+loss_function: bce
+
+# model: DeepSnake
+# model_args:
+#   backbone: Xception
+#   model_dim: 1024
+#   iterations: 4
+#   coord_features: true
+#   stop_grad: true
+#   head: SnakeHead
+# loss_function: SoftDTW(0.001, 8)
+
 # Data args
 batch_size: 16
 data_root: '../CALFIN/training/data'

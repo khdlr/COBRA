@@ -77,7 +77,7 @@ def prep(batch, key=None, augment=False, input_types=None):
 
 def call_loss(loss_fn, prediction, mask, snake, key='loss', take_mean=True):
     sig = signature(loss_fn)
-    args = {}
+    args = {'prediction': prediction}
     if 'snake' in sig.parameters:
         args['snake'] = snake
     if 'mask' in sig.parameters:
@@ -86,9 +86,9 @@ def call_loss(loss_fn, prediction, mask, snake, key='loss', take_mean=True):
     loss_terms = {}
     if isinstance(prediction, list):
         for i, pred in enumerate(prediction, 1):
-            loss_terms[f'{key}_{i}'] = jax.vmap(loss_fn)(prediction=pred, **args)
+            loss_terms[f'{key}_{i}'] = jax.vmap(loss_fn)(**args)
     else:
-        loss_terms[key] = jax.vmap(loss_fn)(prediction=prediction, **args)
+        loss_terms[key] = jax.vmap(loss_fn)(**args)
 
     if take_mean:
         loss_terms = jax.tree_map(jnp.mean, loss_terms)

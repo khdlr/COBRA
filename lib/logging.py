@@ -23,15 +23,15 @@ def log_metrics(metrics, prefix, epoch, do_print=True):
         print(', '.join(f'{k}: {v:.3f}' for k, v in metrics.items()))
 
 
-def log_segmentation(img, mask, pred, tag, step):
-    H, W, C = img.shape
+def log_segmentation(data, tag, step):
+    H, W, C = data['imagery'].shape
 
     fig, axs = plt.subplots(1, 3, figsize=(10, 3))
     for ax in axs:
         ax.axis('off')
-    axs[0].imshow(np.asarray(img))
-    axs[1].imshow(np.asarray(pred[:,:,0]), cmap='gray', vmin=-1, vmax=1)
-    axs[2].imshow(np.asarray(mask), cmap='gray', vmin=0, vmax=1)
+    axs[0].imshow(np.asarray(data['imagery']))
+    axs[1].imshow(np.asarray(data['segmentation'][:,:,0]), cmap='gray', vmin=-1, vmax=1)
+    axs[2].imshow(np.asarray(data['mask']), cmap='gray', vmin=0, vmax=1)
 
     wandb.log({tag: wandb.Image(fig)}, step=step)
     plt.close(fig)
