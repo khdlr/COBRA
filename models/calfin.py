@@ -10,12 +10,9 @@ class CFM:
     """A port of the CALFIN-DeepLabv3 with xception backbone,
     more specifically, model_cfm_dual_wide_x65.py
     """
-    def __init__(self, width):
-        self.width = width
-
     def __call__(self, x, is_training=False):
         B, H, W, C = x.shape
-        _, _, skip3, x = CALFINXception()(x, is_training)
+        skip3, x = CALFINXception()(x, is_training)
 
         # Decoder
         x = nn.upsample(x, shp=[H//4, W//4])

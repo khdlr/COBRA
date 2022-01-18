@@ -71,14 +71,17 @@ class ConvBNAct(hk.Module):
 
 
 class SepConvBN(hk.Module):
-    def __init__(self, filters, stride=1, kernel_size=3, rate=1):
+    def __init__(self, filters, stride=1, kernel_size=3, rate=1, depth_activation=False):
         super().__init__()
         self.stride = stride
         self.kernel_size = kernel_size
         self.rate = rate
         self.filters = filters
+        self.depth_activation = depth_activation
 
     def __call__(self, x, is_training=False):
+        if self.depth_activation:
+            x = jax.nn.relu(x)
         x = hk.Conv2D(self.filters, 1)(x)
         x = ConvBNAct(self.filters, self.kernel_size, stride=self.stride,
             rate=self.rate, feature_group_count=self.filters)(x, is_training)

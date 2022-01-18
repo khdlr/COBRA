@@ -32,7 +32,7 @@ def get_optimizer():
         decay_steps=(500-10) * 487,
         end_value=4e-5
     )
-    return optax.adam(lr_schedule, b1=0.5, b2=0.999)
+    return optax.adam(lr_schedule, b1=0.5, b2=0.99)
 
 
 @partial(jax.jit, static_argnums=3)
