@@ -18,7 +18,7 @@ class UNet:
             skip_connections.append(x)
             x = hk.max_pool(x, 2, 2, padding='SAME')
 
-        x = Convx2(x, 16*W, is_training)
+        x = Convx2(x, 2 * channel_seq[-1], is_training)
 
         for channels, skip in zip(reversed(channel_seq), reversed(skip_connections)):
             B,  H,  W,  C  = x.shape

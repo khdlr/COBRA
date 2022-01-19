@@ -1,10 +1,10 @@
 # Model Specification
 
-model: UNet
+model: HEDUNet
 model_args:
   width: 16
   depth: 6
-loss_function: calfin_loss
+loss_function: hed_unet_loss
 
 # model: DeepSnake
 # model_args:

@@ -48,6 +48,19 @@ def bce(prediction, mask):
     return jnp.mean(loss)
 
 
+def balanced_bce(prediction, mask):
+    beta = jnp.mean(mask, axis=[0, 1], keepdims=True)
+    logit1 = jax.nn.log_sigmoid( prediction)
+    logit0 = jax.nn.log_sigmoid(-prediction)
+
+    loss = -jnp.mean(
+        (1-beta) * logit1 * mask +
+           beta  * logit0 * (1-mask)
+    )
+
+    return loss
+
+
 def iou_loss(prediction, mask):
     """corresponds to -log(iou_score) in the CALFIN code"""
     eps = 1e-1
@@ -68,6 +81,14 @@ def calfin_loss(prediction, mask):
                 jnp.mean(iou_loss(prediction[..., 1:], edge))
 
     return (1/26) * seg_loss + (25/26) * edge_loss
+
+
+def hed_unet_loss(prediction, mask):
+    edge = hk.max_pool(mask, [3, 3], [1, 1], "SAME") != min_pool(mask, [3, 3], [1, 1], "SAME")
+    target = rearrange(jnp.stack([mask, edge], axis=-1), 'H W C -> H W 1 C', C=2)
+    pred   = rearrange(prediction, 'H W (R C) -> H W R C', C=2)
+
+    return balanced_bce(pred, target)
 
 
 class AbstractDTW(ABC):
