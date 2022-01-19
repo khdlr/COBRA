@@ -1,7 +1,9 @@
 # Model Specification
 
-model: CFM
-model_args: {}
+model: UNet
+model_args:
+  width: 16
+  depth: 6
 loss_function: calfin_loss
 
 # model: DeepSnake

@@ -4,14 +4,15 @@ import haiku as hk
 
 
 class UNet:
-    def __init__(self, width):
+    def __init__(self, width, depth=4):
         self.width = width
+        self.depth = depth
 
     def __call__(self, x, is_training=False):
         skip_connections = []
 
         W = self.width
-        channel_seq = [W, 2*W, 4*W, 8*W]
+        channel_seq = [W * 2**i for i in range(self.depth)]
         for channels in channel_seq:
             x = Convx2(x, channels, is_training)
             skip_connections.append(x)
