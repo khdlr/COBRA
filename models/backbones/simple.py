@@ -2,6 +2,8 @@ import jax
 import jax.numpy as jnp
 import haiku as hk
 
+from .. import hed_unet as unet
+
 
 class ResBlock(hk.Module):
     def __init__(self, dim, inner_dim=32):
@@ -63,5 +65,24 @@ class SimpleBackbone(hk.Module):
         x3 = block3(x2)
         x4 = block4(x3)
         return (x1, x2, x3, x4)
+
+
+class UNetEncoder(hk.Module):
+    def __init__(self, width=16, depth=6):
+        super().__init__()
+        self.width = width
+        self.depth = depth
+
+    def __call__(self, x, is_training=False):
+        x = hk.Conv2D(self.width, 1)(x)
+
+        # Contracting Path
+        skip_connections = [x]
+        for i in range(self.depth):
+            x = unet.DownBlock(x, is_training)
+            skip_connections.append(x)
+
+        return skip_connections
+
 
 

@@ -86,6 +86,7 @@ def call_loss(loss_fn, prediction, mask, snake, key='loss', take_mean=True):
     loss_terms = {}
     if isinstance(prediction, list):
         for i, pred in enumerate(prediction, 1):
+            args['prediction'] = pred
             loss_terms[f'{key}_{i}'] = jax.vmap(loss_fn)(**args)
     else:
         loss_terms[key] = jax.vmap(loss_fn)(**args)

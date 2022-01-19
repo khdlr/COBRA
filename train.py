@@ -75,7 +75,8 @@ def train_step(batch, state, key, net):
 
 
 if __name__ == '__main__':
-    utils.assert_git_clean()
+    if len(sys.argv) < 2 or sys.argv[1] != '-f':
+        utils.assert_git_clean()
     train_key = jax.random.PRNGKey(42)
     persistent_val_key = jax.random.PRNGKey(27)
 

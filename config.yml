@@ -1,20 +1,20 @@
 # Model Specification
 
-model: HEDUNet
-model_args:
-  width: 16
-  depth: 6
-loss_function: hed_unet_loss
-
-# model: DeepSnake
+# model: HEDUNet
 # model_args:
-#   backbone: Xception
-#   model_dim: 1024
-#   iterations: 4
-#   coord_features: true
-#   stop_grad: true
-#   head: SnakeHead
-# loss_function: SoftDTW(0.001, 8)
+#   width: 16
+#   depth: 6
+# loss_function: hed_unet_loss
+
+model: DeepSnake
+model_args:
+  backbone: UNetEncoder
+  model_dim: 1024
+  iterations: 4
+  coord_features: true
+  stop_grad: true
+  head: SnakeHead
+loss_function: SoftDTW(0.001, 8)
 
 # Data args
 batch_size: 16
