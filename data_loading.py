@@ -12,6 +12,7 @@ from skimage.measure import find_contours
 import yaml
 from tqdm import tqdm
 from skimage.transform import resize
+from lib.utils import fnot
 
 
 def md5(obj):
@@ -89,26 +90,51 @@ def snakify(gt, vertices):
     return out_contours
 
 
-class CalfinDataset(torch.utils.data.Dataset):
-    def __init__(self, mode, subtiles=True):
+class GlacierFrontDataset(torch.utils.data.Dataset):
+    def __init__(self, mode, config, subtiles=True):
         super().__init__()
         self.mode = mode
         self.subtiles = subtiles
 
-        self.config = yaml.load(open('config.yml'), Loader=yaml.SafeLoader)
-        self.root = Path(self.config['data_root']) / mode
+        self.channels = config['data_channels']
+        self.tilesize = config['tile_size']
+        self.vertices = config['vertices']
 
-        self.cachedir = self.root.parent / 'cache'
+        self.root = Path(config['data_root'])
+        if (self.root / 'ground_truth').exists() and (self.root / 'reference_data').exists():
+            self.data_source = 'TUD'
+            ## Loading TUD dataset
+            gts = sorted(self.root.glob('ground_truth/*/*/*_30m.tif'))
+
+            istest = lambda gt: gt.parent.name.startswith('202') 
+            isval = lambda gt: gt.parent.name.endswith('3')
+
+            if mode == 'test':
+                # Use data from 2020 onwards for testing
+                gts = filter(istest, gts)
+            else:
+                gts = filter(fnot(istest), gts)
+                if mode == 'train':
+                    gts = filter(fnot(isval), gts)
+                else:
+                    gts = filter(isval, gts)
+            self.gts = list(gts)
+        else:
+            self.data_source = 'CALFIN'
+            self.gts = sorted(self.root.glob(f'{mode}/*_mask.png'))
+
+        self.cachedir = self.root / 'cache'
         self.cachedir.mkdir(exist_ok=True)
 
-        if self.subtiles:
-            self.confighash = md5((self.config['tile_size'], self.config['vertices']))
-        else:
-            self.confighash = md5((self.config['tile_size'], self.config['vertices'], True))
-
-        self.tile_cache_path   = self.cachedir / f'{mode}_tile_{self.confighash}.npy'
-        self.mask_cache_path  = self.cachedir / f'{mode}_mask_{self.confighash}.npy'
-        self.snake_cache_path = self.cachedir / f'{mode}_snake_{self.confighash}.npy'
+        confighash = md5((
+            self.tilesize,
+            self.vertices,
+            self.channels,
+            self.subtiles))
+        prefix = f'{self.data_source}_{mode}_{confighash}'
+        self.tile_cache_path  = self.cachedir / f'{prefix}_tile.npy'
+        self.mask_cache_path  = self.cachedir / f'{prefix}_mask.npy'
+        self.snake_cache_path = self.cachedir / f'{prefix}_snake.npy'
 
         self.assert_cache()
 
@@ -131,25 +157,46 @@ class CalfinDataset(torch.utils.data.Dataset):
         self.mask_cache  = np.load(self.mask_cache_path,  mmap_mode='r')
         self.tile_cache  = np.load(self.tile_cache_path,  mmap_mode='r')
 
+    def generate_raw(self):
+        if self.data_source == 'TUD':
+            for gtpath in self.gts:
+                try:
+                    *_, loc, date, _ = gtpath.parts
+                    ref_root = self.root / 'reference_data' / loc / date / '30m'
+                    channels = []
+                    for channel_name in self.channels:
+                        channel = np.asarray(Image.open(ref_root / f'{channel_name}.tif'))
+                        channels.append(channel.astype(np.uint8))
+                    tile = np.stack(channels, axis=-1)
+                    # mask = np.asarray(Image.open(gtpath)) > 127
+                    mask = np.asarray(Image.open(gtpath)) > 0
+                    yield tile, mask
+                except FileNotFoundError:
+                    # Some of the data are not complete, so we skip them
+                    pass
+        elif self.data_source == 'CALFIN':
+            for gtpath in self.gts:
+                tilepath = str(gtpath).replace('_mask.png', '.png')
+                tile = np.asarray(Image.open(tilepath))[..., self.channels]
+                mask = np.asarray(Image.open(gtpath)) > 127
+                yield tile, mask
+
     def generate_tiles(self):
-        prog = tqdm(list(self.root.glob('*_mask.png')))
+        prog  = tqdm(self.generate_raw(), total=len(self.gts))
         count = 0
         zeros = 0
         taken = 0
-        for maskpath in prog:
-            tilesize = self.config['tile_size']
-            tilepath = str(maskpath).replace('_mask.png', '.png')
-            tile = np.asarray(Image.open(tilepath))
-            mask = np.asarray(Image.open(maskpath)) > 127
-
-            tile  = resize(tile, [512, 512, 3], order=1, anti_aliasing=True, preserve_range=True).astype(np.uint8)
-            mask  = resize(mask, [512, 512], order=0, anti_aliasing=False, preserve_range=True).astype(bool)
+        for tile, mask in prog:
+            T = self.tilesize
+            H, W, C = tile.shape
+            tile  = resize(tile, [2*T, 2*T, C], order=1, anti_aliasing=True, preserve_range=True).astype(np.uint8)
+            mask  = resize(mask, [2*T, 2*T], order=0, anti_aliasing=False, preserve_range=True).astype(bool)
             H, W, C = tile.shape
 
-            full_tile  = resize(tile, [256, 256, 3], order=1, anti_aliasing=True, preserve_range=True).astype(np.uint8)
-            full_mask  = resize(mask, [256, 256], order=0, anti_aliasing=False, preserve_range=True).astype(bool)
+            full_tile  = resize(tile, [T, T, C], order=1, anti_aliasing=True, preserve_range=True).astype(np.uint8)
+            full_mask  = resize(mask, [T, T], order=0, anti_aliasing=False, preserve_range=True).astype(bool)
 
-            full_snake = snakify(full_mask, self.config['vertices'])
+            full_snake = snakify(full_mask, self.vertices)
             if len(full_snake) == 1:
                 taken += 1
                 yield(full_tile, full_mask, full_snake[0])
@@ -157,10 +204,10 @@ class CalfinDataset(torch.utils.data.Dataset):
             if not self.subtiles:
                 continue
 
-            for y in np.linspace(0, H-tilesize, 4).astype(np.int32):
-                for x in np.linspace(0, W-tilesize, 4).astype(np.int32):
-                    patch = tile[y:y+tilesize, x:x+tilesize]
-                    patch_mask = mask[y:y+tilesize, x:x+tilesize]
+            for y in np.linspace(0, H-T, 4).astype(np.int32):
+                for x in np.linspace(0, W-T, 4).astype(np.int32):
+                    patch      = tile[y:y+T, x:x+T]
+                    patch_mask = mask[y:y+T, x:x+T]
 
                     useful = patch_mask.mean()
                     invalid = np.all(patch == 0, axis=-1).mean()
@@ -168,7 +215,7 @@ class CalfinDataset(torch.utils.data.Dataset):
                     if useful < 0.3 or useful > 0.7 or invalid > 0.2:
                         continue
 
-                    snakes = snakify(patch_mask, self.config['vertices'])
+                    snakes = snakify(patch_mask, self.vertices)
                     count += 1
 
                     if len(snakes) == 1:
@@ -186,11 +233,7 @@ class CalfinDataset(torch.utils.data.Dataset):
             #       f'Funky: {count - taken - zeros}')
 
     def __getitem__(self, idx):
-        refchannel = 2
-        if self.mode == 'train':
-            refchannel = random.randint(0, 2)
-
-        ref   = self.tile_cache[idx, ..., refchannel]
+        ref   = self.tile_cache[idx]
         mask  = self.mask_cache[idx]
         snake = self.snake_cache[idx]
 
@@ -203,9 +246,15 @@ class CalfinDataset(torch.utils.data.Dataset):
 
 
 if __name__ == '__main__':
-    ds = CalfinDataset('validation_zhang')
+    config = {
+        'data_root': '../aicore/uc1/data/',
+        'data_channels': ['SPECTRAL/BANDS/NORM_B8_8b'],
+        # 'data_root': '../CALFIN/training/data',
+        # 'data_channels': [0],
+        'vertices': 64,
+        'tile_size': 256,
+    }
+    ds = GlacierFrontDataset('validation', config, subtiles=False)
     print(len(ds))
-    for a in tqdm(ds):
-        for x in a:
-            print(x.shape, x.dtype)
-        break
+    for x in ds[0]:
+        print(x.shape, x.dtype)

@@ -207,3 +207,7 @@ def min_pool(
 
   return jax.lax.reduce_window(value, jnp.inf, jax.lax.min, window_shape, strides, padding)
 
+
+def fnot(fun):
+    return lambda x: not fun(x)
+
