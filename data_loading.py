@@ -54,8 +54,8 @@ def numpy_collate(batch):
         return np.array(batch)
 
 
-def get_loader(batch_size, data_threads, mode, rng_key=None, drop_last=True, subtiles=True):
-    data = CalfinDataset(mode=mode, subtiles=subtiles)
+def get_loader(batch_size, data_threads, mode, config, rng_key=None, drop_last=True, subtiles=True):
+    data = GlacierFrontDataset(mode=mode, config=config, subtiles=subtiles)
 
     kwargs = dict(
         batch_size = batch_size,
