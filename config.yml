@@ -24,4 +24,4 @@ data_root: '../aicore/uc1/data/'
 data_channels:
   - 'SPECTRAL/BANDS/NORM_B8_8b'
 tile_size: 256
-vertices: 128
+vertices: 64

@@ -237,8 +237,6 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         mask  = self.mask_cache[idx]
         snake = self.snake_cache[idx]
 
-        ref   = np.expand_dims(ref, -1)
-
         return ref, mask, snake
 
     def __len__(self):
