@@ -17,6 +17,6 @@ def get_model(config, dummy_in, seed=jax.random.PRNGKey(39)):
     model = modelclass(**model_args)
     model = hk.transform_with_state(model)
 
-    params, buffers = model.init(seed, dummy_in[1:], is_training=True)
+    params, buffers = model.init(seed, dummy_in[:1], is_training=True)
 
     return model, params, buffers
