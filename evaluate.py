@@ -67,11 +67,19 @@ def test_step(batch, state, key, net):
 if __name__ == '__main__':
     run = Path(sys.argv[1])
     assert run.exists()
+    do_output = True
+
     config = yaml.load(open(run / 'config.yml'), Loader=yaml.SafeLoader)
+    config['data_root'] = '../CALFIN/training/data'
+    config['data_channels'] = [0]
 
     datasets = ['validation', 'validation_baumhoer', 'validation_zhang']
-    loaders  = {d: get_loader(1, 4, d, drop_last=False, subtiles=False) for d in datasets}
-    
+    loaders  = {d: get_loader(1, 4, d, config, drop_last=False, subtiles=False) for d in datasets}
+
+    config['data_root'] = '../aicore/uc1/data/'
+    config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
+    loaders['TUD_test'] = get_loader(1, 4, 'test', config, drop_last=False, subtiles=False)
+
     for sample_batch in loaders[datasets[0]]:
         break
     img, *_ = prep(sample_batch)
@@ -81,7 +89,7 @@ if __name__ == '__main__':
     net = S.apply
 
     for dataset, loader in loaders.items():
-        test_key = jax.random.PRNGKey(0)
+        test_key = jax.random.PRNGKey(27)
 
         metrics = {k: jnp.zeros([0]) for k in METRICS}
         for batch in tqdm(loader, desc=dataset):
@@ -91,12 +99,14 @@ if __name__ == '__main__':
             metrics = jax.tree_multimap(lambda x, y: jnp.concatenate([x, y]), metrics, step_metrics)
 
         print('===', dataset, '===')
-        print(f'{"Metric".ljust(15)}:    mean   median      min         max')
-                                    # 1234567  1234567  1234567  -- 1234567
-        with open('eval.csv', 'a') as f:
-            for m, val in metrics.items():
-                print(f'{m.ljust(15)}: {val.mean():7.4f}  {jnp.median(val):7.4f}  {jnp.min(val):7.4f} -- {jnp.max(val):7.4f}')
-                print(f'{run.stem},{config["run_id"]},{dataset},{m},'
-                      f'{val.mean()},{jnp.median(val)},{jnp.mean(val/3.33)},{jnp.min(val)},{jnp.max(val)}',
-                        file=f)
+        print(f'{"Metric".ljust(15)}:    mean   median      min        max')
+        for m, val in metrics.items():
+            print(f'{m.ljust(15)}: {val.mean():7.4f}  {jnp.median(val):7.4f}  '
+                  f'{jnp.min(val):7.4f} – {jnp.max(val):8.4f}')
         print()
+        if do_output:
+            with open('results.csv', 'a') as f:
+                for m, val in metrics.items():
+                    print(f'{run.stem},{config["run_id"]},{dataset},{m},'
+                          f'{val.mean()},{jnp.median(val)},{jnp.mean(val/3.33)},{jnp.min(val)},{jnp.max(val)}',
+                            file=f)
