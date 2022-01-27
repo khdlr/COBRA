@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 import models
 from data_loading import get_loader
-from lib import metrics, utils
+from lib import metrics, utils, logging
 from lib.utils import TrainingState, prep, load_state
 
 
@@ -71,14 +71,14 @@ if __name__ == '__main__':
 
     config = yaml.load(open(run / 'config.yml'), Loader=yaml.SafeLoader)
     config['data_root'] = '../CALFIN/training/data'
-    config['data_channels'] = [0]
+    config['data_channels'] = [2]
 
-    datasets = ['validation', 'validation_baumhoer', 'validation_zhang']
-    loaders  = {d: get_loader(1, 4, d, config, drop_last=False, subtiles=False) for d in datasets}
+    datasets = ['validation']# , 'validation_baumhoer', 'validation_zhang']
+    loaders  = {d: get_loader(4, 1, d, config, None, subtiles=False) for d in datasets}
 
-    config['data_root'] = '../aicore/uc1/data/'
-    config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
-    loaders['TUD_test'] = get_loader(1, 4, 'test', config, drop_last=False, subtiles=False)
+    # config['data_root'] = '../aicore/uc1/data/'
+    # config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
+    # loaders['TUD_test'] = get_loader(1, 4, 'test', config, drop_last=False, subtiles=False)
 
     for sample_batch in loaders[datasets[0]]:
         break
@@ -90,23 +90,24 @@ if __name__ == '__main__':
 
     for dataset, loader in loaders.items():
         test_key = jax.random.PRNGKey(27)
-
-        metrics = {k: jnp.zeros([0]) for k in METRICS}
+        test_metrics = {}
         for batch in tqdm(loader, desc=dataset):
             test_key, subkey = jax.random.split(test_key)
-            step_metrics, output = test_step(batch, state, subkey, net)
+            metrics, output = test_step(batch, state, subkey, net)
 
-            metrics = jax.tree_multimap(lambda x, y: jnp.concatenate([x, y]), metrics, step_metrics)
+            for m in metrics:
+              if m not in test_metrics: test_metrics[m] = []
+              test_metrics[m].append(metrics[m])
 
-        print('===', dataset, '===')
-        print(f'{"Metric".ljust(15)}:    mean   median      min        max')
-        for m, val in metrics.items():
-            print(f'{m.ljust(15)}: {val.mean():7.4f}  {jnp.median(val):7.4f}  '
-                  f'{jnp.min(val):7.4f} – {jnp.max(val):8.4f}')
-        print()
-        if do_output:
-            with open('results.csv', 'a') as f:
-                for m, val in metrics.items():
-                    print(f'{run.stem},{config["run_id"]},{dataset},{m},'
-                          f'{val.mean()},{jnp.median(val)},{jnp.mean(val/3.33)},{jnp.min(val)},{jnp.max(val)}',
-                            file=f)
+        logging.log_metrics(test_metrics, dataset, 0, do_wandb=False)
+        # print(f'{"Metric".ljust(15)}:    mean   median      min        max')
+        # for m, val in metrics.items():
+        #     print(f'{m.ljust(15)}: {val.mean():7.4f}  {jnp.median(val):7.4f}  '
+        #           f'{jnp.min(val):7.4f} – {jnp.max(val):8.4f}')
+        # print()
+        # if do_output:
+        #     with open('results.csv', 'a') as f:
+        #         for m, val in metrics.items():
+        #             print(f'{run.stem},{config["run_id"]},{dataset},{m},'
+        #                   f'{val.mean()},{jnp.median(val)},{jnp.mean(val)},{jnp.min(val)},{jnp.max(val)}',
+        #                     file=f)
