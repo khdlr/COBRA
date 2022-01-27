@@ -4,6 +4,7 @@ from functools import partial
 from pathlib import Path
 import jax
 import jax.numpy as jnp
+import numpy as np
 import wandb
 from tqdm import tqdm
 
@@ -73,12 +74,12 @@ if __name__ == '__main__':
     config['data_root'] = '../CALFIN/training/data'
     config['data_channels'] = [2]
 
-    datasets = ['validation']# , 'validation_baumhoer', 'validation_zhang']
+    datasets = ['validation' , 'validation_baumhoer', 'validation_zhang']
     loaders  = {d: get_loader(4, 1, d, config, None, subtiles=False) for d in datasets}
 
-    # config['data_root'] = '../aicore/uc1/data/'
-    # config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
-    # loaders['TUD_test'] = get_loader(1, 4, 'test', config, drop_last=False, subtiles=False)
+    config['data_root'] = '../aicore/uc1/data/'
+    config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
+    loaders['TUD_test'] = get_loader(1, 4, 'test', config, drop_last=False, subtiles=False)
 
     for sample_batch in loaders[datasets[0]]:
         break
@@ -88,6 +89,7 @@ if __name__ == '__main__':
     state = utils.load_state(run / 'latest.pkl')
     net = S.apply
 
+    all_metrics = {}
     for dataset, loader in loaders.items():
         test_key = jax.random.PRNGKey(27)
         test_metrics = {}
@@ -100,6 +102,12 @@ if __name__ == '__main__':
               test_metrics[m].append(metrics[m])
 
         logging.log_metrics(test_metrics, dataset, 0, do_wandb=False)
+        for m in test_metrics:
+            all_metrics[f'{dataset}/{m}'] = np.mean(test_metrics[m])
+
+    with (run / 'metrics.json').open('w') as f:
+        print(all_metrics, file=f)
+
         # print(f'{"Metric".ljust(15)}:    mean   median      min        max')
         # for m, val in metrics.items():
         #     print(f'{m.ljust(15)}: {val.mean():7.4f}  {jnp.median(val):7.4f}  '
