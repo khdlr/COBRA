@@ -14,10 +14,11 @@ from argparse import ArgumentParser
 from einops import rearrange
 
 
-def log_metrics(metrics, prefix, epoch, do_print=True):
+def log_metrics(metrics, prefix, epoch, do_print=True, do_wandb=True):
     metrics = {m: np.mean(metrics[m]) for m in metrics}
 
-    wandb.log({f'{prefix}/{m}': metrics[m] for m in metrics}, step=epoch)
+    if do_wandb:
+        wandb.log({f'{prefix}/{m}': metrics[m] for m in metrics}, step=epoch)
     if do_print:
         print(f'{prefix}/metrics')
         print(', '.join(f'{k}: {v:.3f}' for k, v in metrics.items()))

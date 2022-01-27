@@ -99,7 +99,6 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         self.channels = config['data_channels']
         self.tilesize = config['tile_size']
         self.vertices = config['vertices']
-
         self.root = Path(config['data_root'])
         if (self.root / 'ground_truth').exists() and (self.root / 'reference_data').exists():
             self.data_source = 'TUD'
