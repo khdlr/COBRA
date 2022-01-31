@@ -6,25 +6,25 @@
 #   depth: 6
 # loss_function: hed_unet_loss
 
-model: UNet
-model_args:
-    width: 64
-    depth: 4
-loss_function: bce
+# model: UNet
+# model_args:
+#     width: 64
+#     depth: 4
+# loss_function: bce
 
 # model: CFM
 # model_args: {}
 # loss_function: calfin_loss
 
-# model: DeepSnake
-# model_args:
-#   backbone: Xception
-#   model_dim: 1024
-#   iterations: 4
-#   coord_features: true
-#   stop_grad: true
-#   head: SnakeHead
-# loss_function: SoftDTW(0.001, 8)
+model: DeepSnake
+model_args:
+  backbone: Xception
+  model_dim: 1024
+  iterations: 4
+  coord_features: true
+  stop_grad: true
+  head: SnakeHead
+loss_function: SoftDTW(0.001, 8)
 
 # Data args
 batch_size: 16
@@ -32,6 +32,13 @@ batch_size: 16
 # data_channels: [2]
 data_root: '../aicore/uc1/data/'
 data_channels:
+  - 'SPECTRAL/BANDS/STD_2s_B1_8b'
+  - 'SPECTRAL/BANDS/STD_2s_B2_8b'
+  - 'SPECTRAL/BANDS/STD_2s_B3_8b'
+  - 'SPECTRAL/BANDS/STD_2s_B4_8b'
+  - 'SPECTRAL/BANDS/STD_2s_B5_8b'
+  - 'SPECTRAL/BANDS/STD_2s_B6_8b'
+  - 'SPECTRAL/BANDS/STD_2s_B7_8b'
   - 'SPECTRAL/BANDS/STD_2s_B8_8b'
 tile_size: 256
 vertices: 64
