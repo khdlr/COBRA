@@ -1,10 +1,16 @@
 # Model Specification
 
-model: HEDUNet
+# model: HEDUNet
+# model_args:
+#   width: 16
+#   depth: 6
+# loss_function: hed_unet_loss
+
+model: UNet
 model_args:
-  width: 16
-  depth: 6
-loss_function: hed_unet_loss
+    width: 64
+    depth: 4
+loss_function: bce
 
 # model: CFM
 # model_args: {}
