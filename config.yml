@@ -22,7 +22,7 @@ model_args:
   model_dim: 1024
   iterations: 4
   coord_features: true
-  stop_grad: true
+  stop_grad: false
   head: SnakeHead
 loss_function: SoftDTW(0.001, 8)
 
@@ -32,13 +32,6 @@ batch_size: 16
 # data_channels: [2]
 data_root: '../aicore/uc1/data/'
 data_channels:
-  - 'SPECTRAL/BANDS/STD_2s_B1_8b'
-  - 'SPECTRAL/BANDS/STD_2s_B2_8b'
-  - 'SPECTRAL/BANDS/STD_2s_B3_8b'
-  - 'SPECTRAL/BANDS/STD_2s_B4_8b'
-  - 'SPECTRAL/BANDS/STD_2s_B5_8b'
-  - 'SPECTRAL/BANDS/STD_2s_B6_8b'
-  - 'SPECTRAL/BANDS/STD_2s_B7_8b'
   - 'SPECTRAL/BANDS/STD_2s_B8_8b'
 tile_size: 256
 vertices: 64
