@@ -21,8 +21,8 @@ model_args:
   backbone: Xception
   model_dim: 1024
   iterations: 4
-  coord_features: true
-  stop_grad: false
+  coord_features: false
+  stop_grad: true
   head: SnakeHead
 loss_function: SoftDTW(0.001, 8)
 
