@@ -20,7 +20,7 @@ model: DeepSnake
 model_args:
   backbone: Xception
   model_dim: 1024
-  iterations: 6
+  iterations: 7
   coord_features: true
   stop_grad: true
   head: SnakeHead
