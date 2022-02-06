@@ -20,11 +20,11 @@ model: DeepSnake
 model_args:
   backbone: Xception
   model_dim: 1024
-  iterations: 8
+  iterations: 4
   coord_features: true
   stop_grad: true
   head: SnakeHead
-loss_function: SoftDTW(0.001, 8)
+loss_function: l2_loss
 
 # Data args
 batch_size: 16
