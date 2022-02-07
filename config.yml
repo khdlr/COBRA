@@ -24,7 +24,7 @@ model_args:
   coord_features: true
   stop_grad: true
   head: SnakeHead
-loss_function: l2_loss
+loss_function: DTW()
 
 # Data args
 batch_size: 16
