@@ -37,11 +37,15 @@ class HEDUNet:
 
         P = jnp.concatenate(Ps, axis=-1)
         Q = jnp.concatenate(Qs, axis=-1)
-        
+
         A  = rearrange(Q, 'B H W (R C) -> B H W C R', C=2)
         P_ = rearrange(P, 'B H W (R C) -> B H W C R', C=2)
         final_pred = jnp.einsum('bhwcr,bhwcr->bhwc', jax.nn.softmax(A, axis=-1), P_)
-        return jnp.concatenate([final_pred, P], axis=-1)
+        all_preds = jnp.concatenate([final_pred, P], axis=-1)
+
+        seg, edge = jnp.split(final_pred, 2, axis=-1)
+
+        return {'seg': seg, 'edge': edge, 'HED-UNet-Stack': all_preds}
 
 
 def BatchNorm():

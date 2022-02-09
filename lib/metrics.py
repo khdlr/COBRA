@@ -2,14 +2,18 @@ import jax
 import jax.numpy as jnp
 
 
-def mae(prediction, snake):
-    squared_distances = jnp.sum(jnp.square(prediction - snake), axis=-1)
-    return jnp.mean(jnp.sqrt(squared_distances))
+def mae(terms):
+  snake   = terms['snake']
+  contour = terms['contour']
+  squared_distances = jnp.sum(jnp.square(snake - contour), axis=-1)
+  return jnp.mean(jnp.sqrt(squared_distances))
 
 
-def rmse(prediction, snake):
-    squared_distances = jnp.sum(jnp.square(prediction - snake), axis=-1)
-    return jnp.sqrt(jnp.mean(squared_distances))
+def rmse(terms):
+  snake   = terms['snake']
+  contour = terms['contour']
+  squared_distances = jnp.sum(jnp.square(snake - contour), axis=-1)
+  return jnp.sqrt(jnp.mean(squared_distances))
 
 
 def squared_distance_point_to_linesegment(point, linestart, lineend):
@@ -53,7 +57,7 @@ def mae_line_to_line(line1, line2):
     """
     squared_dist = squared_distance_points_to_best_segment(line1, line2)
     return jnp.mean(jnp.sqrt(squared_dist))
-    
+
 
 def rmse_line_to_line(line1, line2):
     """
@@ -63,31 +67,39 @@ def rmse_line_to_line(line1, line2):
     return jnp.sqrt(jnp.mean(squared_dist))
 
 
-def forward_mae(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(prediction, snake)
-    return jnp.mean(jnp.sqrt(squared_dist))
+def forward_mae(terms):
+  snake   = terms['snake']
+  contour = terms['contour']
+  squared_dist = squared_distance_points_to_best_segment(terms)
+  return jnp.mean(jnp.sqrt(squared_dist))
 
 
-def backward_mae(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(snake, prediction)
-    return jnp.mean(jnp.sqrt(squared_dist))
+def backward_mae(terms):
+  snake   = terms['snake']
+  contour = terms['contour']
+  squared_dist = squared_distance_points_to_best_segment(contour, snake)
+  return jnp.mean(jnp.sqrt(squared_dist))
 
 
-def forward_rmse(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(prediction, snake)
-    return jnp.sqrt(jnp.mean(squared_dist))
+def forward_rmse(terms):
+  snake   = terms['snake']
+  contour = terms['contour']
+  squared_dist = squared_distance_points_to_best_segment(terms)
+  return jnp.sqrt(jnp.mean(squared_dist))
 
 
-def backward_rmse(prediction, snake):
-    squared_dist = squared_distance_points_to_best_segment(snake, prediction)
-    return jnp.sqrt(jnp.mean(squared_dist))
+def backward_rmse(terms):
+  snake   = terms['snake']
+  contour = terms['contour']
+  squared_dist = squared_distance_points_to_best_segment(contour, snake)
+  return jnp.sqrt(jnp.mean(squared_dist))
 
 
-def symmetric_mae(prediction, snake):
-    return 0.5 * forward_mae(prediction, snake) + 0.5 * backward_mae(prediction, snake)
+def symmetric_mae(terms):
+  return 0.5 * forward_mae(terms) + 0.5 * backward_mae(terms)
 
 
-def symmetric_rmse(prediction, snake):
-    return 0.5 * forward_rmse(prediction, snake) + 0.5 * backward_rmse(prediction, snake)
+def symmetric_rmse(terms):
+    return 0.5 * forward_rmse(terms) + 0.5 * backward_rmse(terms)
 
 

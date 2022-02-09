@@ -6,6 +6,14 @@ from . import nnutils as nn
 from functools import partial
 
 
+def random_bezier(key, vertices=64):
+  t = jnp.linspace(0, 1, vertices).reshape(1, -1, 1)
+  points = jax.random.uniform(key, [5, 1, 2], minval=-1, maxval=1)
+  while points.shape[0] != 1:
+    points = points[1:] * t + points[:-1] * (1-t)
+  return points[0]
+
+
 def subdivide_polyline(polyline):
     B, T, C = polyline.shape
     T_new = T * 2 - 1

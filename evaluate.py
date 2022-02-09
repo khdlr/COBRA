@@ -28,39 +28,30 @@ METRICS = dict(
 
 @partial(jax.jit, static_argnums=3)
 def test_step(batch, state, key, net):
-    imagery, mask, snake = prep(batch)
+    imagery, mask, contour = prep(batch)
+
+    terms, _ = net(state.params, state.buffers, key, imagery, is_training=False)
+
     out = {
+        **terms,
         'imagery': imagery,
-        'snake': snake,
+        'contour': contour,
         'mask': mask,
     }
 
-    # sampled_pred_steps = []
-    # subkeys = jax.random.split(key, 4)
-    # for subkey in subkeys:
-    preds, _ = net(state.params, state.buffers, key, imagery, is_training=False)
-
-    #   sampled_pred_steps.append(pred_steps)
-    if isinstance(preds, list):
-        # Snake
-        out['predictions'] = [preds]
-        preds = preds[-1]
-    elif preds.shape[:3] == imagery.shape[:3]:
-        # Segmentation
-        out['segmentation'] = preds
-        preds = utils.snakify(preds, snake.shape[-2])
-        out['predictions'] = [[preds]]
-    else:
-        raise ValueError("Model outputs unknown data representation")
+    if 'snake' not in terms:
+      out['snake'] = utils.snakify(preds, contour.shape[-2])
+    if 'snake_steps' not in terms:
+      terms['snake_steps'] = [terms['snake']]
 
     # Convert from normalized to to pixel coordinates
-    scale = imagery.shape[1] / 2
-    snake *= scale
-    preds *= scale
+    scale = imagery.shape[1]
+    for key in ['snake', 'snake_steps', 'contour']:
+      terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
 
     metrics = {}
     for m in METRICS:
-        metrics[m] = jax.vmap(METRICS[m])(preds, snake)
+        metrics[m] = jax.vmap(METRICS[m])(terms)
 
     return metrics, out
 

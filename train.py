@@ -25,14 +25,14 @@ from evaluate import test_step, METRICS
 PATIENCE = 100
 
 def get_optimizer():
-    lr_schedule = optax.warmup_cosine_decay_schedule(
-        init_value=1e-7,
-        peak_value=1e-3,
-        warmup_steps=10 * 487,
-        decay_steps=(500-10) * 487,
-        end_value=4e-5
-    )
-    return optax.adam(lr_schedule, b1=0.5, b2=0.99)
+  lr_schedule = optax.warmup_cosine_decay_schedule(
+    init_value=1e-7,
+    peak_value=1e-3,
+    warmup_steps=10 * 487,
+    decay_steps=(500-10) * 487,
+    end_value=4e-5
+  )
+  return optax.adam(lr_schedule, b1=0.5, b2=0.99)
 
 
 @partial(jax.jit, static_argnums=3)
@@ -40,32 +40,32 @@ def train_step(batch, state, key, net):
     _, optimizer = get_optimizer()
 
     aug_key, model_key = jax.random.split(key)
-    img, mask, snake = prep(batch, aug_key, augment=True)
+    img, mask, contour = prep(batch, aug_key, augment=True)
 
     def calculate_loss(params):
-        preds, buffers = net(params, state.buffers, model_key, img, is_training=True)
-        loss_terms = utils.call_loss(loss_fn, preds, mask, snake)
+        terms, buffers = net(params, state.buffers, model_key, img, is_training=True)
+        terms = {**terms, 'mask': mask, 'contour': contour}
+        loss_terms = loss_fn(terms)
 
-        if isinstance(preds, list):
-            preds = preds[-1]
+        return sum(loss_terms.values()), (buffers, terms, loss_terms)
 
-        return sum(loss_terms.values()), (buffers, preds, loss_terms)
-
-    (loss, (buffers, prediction, metrics)), gradients = jax.value_and_grad(calculate_loss, has_aux=True)(state.params)
+    (loss, (buffers, terms, metrics)), gradients = jax.value_and_grad(calculate_loss, has_aux=True)(state.params)
     updates, new_opt = optimizer(gradients, state.opt, state.params)
     new_params = optax.apply_updates(state.params, updates)
 
-    if prediction.ndim > 3:
-        prediction = utils.snakify(prediction[:1], snake.shape[-2])
-        snake = snake[:1]
+    if 'snake' not in terms:
+      terms['snake'] = utils.snakify(terms['seg'][:1], contour.shape[-2])
+      terms['contour'] = terms['contour'][:1]
+    if 'snake_steps' not in terms:
+      terms['snake_steps'] = [terms['snake']]
 
     # Convert from normalized to to pixel coordinates
-    scale = img.shape[1] / 2
-    snake *= scale
-    prediction *= scale
+    scale = img.shape[1]
+    for key in ['snake', 'snake_steps', 'contour']:
+      terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
 
     for m in METRICS:
-        metrics.update(utils.call_loss(METRICS[m], prediction, mask, snake, key=m))
+        metrics[m] = METRICS[m](terms)
 
     return metrics, changed_state(state,
         params=new_params,
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
             out = jax.tree_map(lambda x: x[0], out) # Select first example from batch
             logging.log_anim(out, f"Animated/{step}", epoch)
-            if 'segmentation' in out:
+            if 'seg' in out:
                 logging.log_segmentation(out, f'Segmentation/{step}', epoch)
 
         logging.log_metrics(val_metrics, 'val', epoch)

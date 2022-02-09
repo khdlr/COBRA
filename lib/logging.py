@@ -31,7 +31,7 @@ def log_segmentation(data, tag, step):
     for ax in axs:
         ax.axis('off')
     axs[0].imshow(np.asarray(data['imagery']), cmap='gray')
-    axs[1].imshow(np.asarray(data['segmentation'][:,:,0]), cmap='gray', vmin=-1, vmax=1)
+    axs[1].imshow(np.asarray(data['seg'][:,:,0]), cmap='gray', vmin=-1, vmax=1)
     axs[2].imshow(np.asarray(data['mask']), cmap='gray', vmin=0, vmax=1)
 
     wandb.log({tag: wandb.Image(fig)}, step=step)
@@ -47,12 +47,11 @@ def log_anim(data, tag, step):
     img.save(buffer, format='JPEG')
     imgbase64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-    truth = 0.5 * H * (1 + data['snake'])
+    truth = data['contour']
     gtpath = make_path_string(truth)
 
     path_html = ""
-    for pred in data['predictions']:
-        pred = [0.5 * H * (1 + p) for p in pred]
+    for pred in data['snake_steps']:
         pred = pred + [pred[-1], pred[-1]]
         path_html += animated_path(pred)
 
