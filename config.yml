@@ -19,11 +19,11 @@
 model: DeepSnake
 model_args:
   backbone: Xception
-  model_dim: 1024
+  model_dim: 128
   iterations: 4
   coord_features: true
   stop_grad: true
-  weight_sharing: false
+  weight_sharing: true
   head: SnakeHead
 loss_function: SoftDTW(0.001, 8)
 
