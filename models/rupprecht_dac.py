@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import haiku as hk
 from functools import partial
+from einops import rearrange 
 
 from . import snake_utils
 
@@ -10,7 +11,7 @@ from . import snake_utils
 def get_eta(curve):
   grad = jnp.gradient(curve, axis=0)
   eta  = grad @ jnp.array([[0, -1], [1, 0]])
-  eta /= jnp.linalg.norm(eta, axis=-1)
+  eta /= jnp.linalg.norm(eta, axis=-1, keepdims=True)
   return eta
 
 
@@ -33,11 +34,13 @@ class RupprechtDAC():
     make_bezier = jax.vmap(partial(snake_utils.random_bezier, vertices=self.vertices))
     vertices = make_bezier(init_keys)
 
+    steps = [vertices]
     for _ in range(self.iterations):
       eta       = get_eta(vertices)
-      direction = jax.vmap(sample_at_vertices, [0, 0])(vertices, flow)
-      alpha = jnp.einsum('btc,btc->bt', eta, direction)
+      direction = jax.vmap(snake_utils.sample_at_vertices, [0, 0])(vertices, flow)
+      alpha     = jnp.einsum('btc,btc->bt', eta, direction)
+      alpha = rearrange(alpha, 'b t -> b t 1')
       vertices += self.tau * alpha * eta
       steps.append(vertices)
 
-    return {'snake': snake, 'flow': flow}
+    return {'snake': vertices, 'offsets': flow, 'snake_steps': steps}

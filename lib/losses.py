@@ -47,8 +47,10 @@ def min_min_loss(terms):
 def offset_field_loss(terms):
   mask = terms['mask']
   offsets = terms['offsets']
+  print('mask', mask.shape)
+  print('offs', offsets.shape)
 
-  true_offsets = jax.lax.stop_gradient(jump_flood(mask[..., 0]))
+  true_offsets = jax.vmap(jump_flood)(mask[..., 0])
   error = jnp.sum(jnp.square(offsets - true_offsets), axis=-1)
 
   return jnp.mean(error)

@@ -79,8 +79,8 @@ def jump_flood(mask):
         mask,
         y,
         x,
-        -jnp.ones_like(mask), # pointer_y
-        -jnp.ones_like(mask), # pointer_x
+        -jnp.ones_like(mask, dtype=jnp.int32), # pointer_y
+        -jnp.ones_like(mask, dtype=jnp.int32), # pointer_x
     ]).astype(jnp.int32)
 
     result, _ = jax.lax.scan(substep, data, steps, reverse=True)
