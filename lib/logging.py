@@ -93,3 +93,29 @@ def animated_path(paths):
           <animate attributeName="d" values="{pathvalues}" keyTimes="{keytimes}" dur="3s" repeatCount="indefinite" />
           </path>
           """
+
+
+def log_offset_field(data, tag, step):
+  img = data['imagery']
+  offsets = data['offsets']
+
+  fig, ax = plt.subplots(figsize=(7, 7))
+  ax.axis('off')
+  ax.imshow(img, cmap='gray')
+
+  H, W, C = img.shape
+
+  ry = np.linspace(0, 1, offsets.shape[0]) * H
+  rx = np.linspace(0, 1, offsets.shape[1]) * W
+  x, y = np.meshgrid(rx, ry)
+
+  dy = data['offsets'][..., 0] * H/2
+  dx = data['offsets'][..., 1] * H/2
+
+  cy, cx = data['contour'].T
+  ax.plot(cx, cy, c='b')
+  ax.quiver(x, y, dx, dy,
+      scale=1, scale_units='xy', angles='xy', color='red')
+  
+  wandb.log({tag: wandb.Image(fig)}, step=step)
+  plt.close(fig)

@@ -29,8 +29,8 @@
 
 model: RupprechtDAC
 model_args:
-  iterations: 16
-  tau: 0.1
+  iterations: 64
+  tau: 0.2
 loss_function: offset_field_loss
 
 # Data args
