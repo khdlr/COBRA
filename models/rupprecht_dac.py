@@ -28,7 +28,8 @@ class RupprechtDAC():
     x = hk.max_pool(jax.nn.relu(hk.Conv2D( 64, 3)(x)), 2, 2, 'VALID')
     x = hk.max_pool(jax.nn.relu(hk.Conv2D(128, 3)(x)), 2, 2, 'VALID')
     x = hk.max_pool(jax.nn.relu(hk.Conv2D(256, 3)(x)), 2, 2, 'VALID')
-    flow = hk.Conv2D(2, 1)(jax.nn.relu(hk.Conv2D(2048, 1)(x)))
+    x = jax.nn.relu(hk.Conv2D(2048, 1)(x))
+    flow = hk.Conv2D(2, 1, w_init=jnp.zeros, with_bias=False)(x)
 
     init_keys = jax.random.split(hk.next_rng_key(), imagery.shape[0])
     make_bezier = jax.vmap(partial(snake_utils.random_bezier, vertices=self.vertices))

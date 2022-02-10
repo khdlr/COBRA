@@ -56,6 +56,13 @@ def train_step(batch, state, key, net):
     updates, new_opt = optimizer(gradients, state.opt, state.params)
     new_params = optax.apply_updates(state.params, updates)
 
+    terms = {
+        **terms,
+        'mask': mask,
+        'contour': contour,
+        'imagery': img,
+    }
+
     if 'snake' not in terms:
       terms['snake'] = utils.snakify(terms['seg'][:1], contour.shape[-2])
       terms['contour'] = terms['contour'][:1]
@@ -70,7 +77,7 @@ def train_step(batch, state, key, net):
     for m in METRICS:
         metrics[m] = jnp.mean(jax.vmap(METRICS[m])(terms))
 
-    return metrics, changed_state(state,
+    return metrics, terms, changed_state(state,
         params=new_params,
         buffers=buffers,
         opt=new_opt,
@@ -127,7 +134,7 @@ if __name__ == '__main__':
         loss_ary = None
         for step, batch in enumerate(prog, 1):
             train_key, subkey = jax.random.split(train_key)
-            metrics, state = train_step(batch, state, subkey, net)
+            metrics, terms, state = train_step(batch, state, subkey, net)
 
             for m in metrics:
               if m not in trn_metrics: trn_metrics[m] = []

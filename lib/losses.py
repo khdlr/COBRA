@@ -3,6 +3,8 @@ import jax.numpy as jnp
 from jax.scipy.special import logsumexp
 import haiku as hk
 
+from jax.experimental.host_callback import id_print
+
 from abc import ABC, abstractmethod
 
 from .utils import pad_inf, fmt, distance_matrix, min_pool
@@ -39,11 +41,10 @@ def offset_field_loss(terms):
   mask = terms['mask']
   offsets = terms['offsets']
   H, W = mask.shape
-
   true_offsets = jump_flood(mask)
-  true_offsets = (true_offsets * (2/H)) - 1.0
-  offsets = jax.image.resize(offsets, true_offsets.shape, 'bilinear')
+  true_offsets = (true_offsets * (2/H))
 
+  offsets = jax.image.resize(offsets, true_offsets.shape, 'bilinear')
   error = jnp.sum(jnp.square(offsets - true_offsets), axis=-1)
 
   return jnp.mean(error)
