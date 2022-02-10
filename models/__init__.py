@@ -4,7 +4,7 @@ from .contour_transformer import ContourTransformer
 from .unet import UNet
 from .calfin import CFM
 from .hed_unet import HEDUNet
-from .rupprecht_dac import RupprechtDAC
+from .rupprecht_dac import RupprechtDAC, SimplifiedRupprechtDAC
 
 import jax
 import haiku as hk

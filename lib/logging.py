@@ -13,6 +13,8 @@ import base64
 from argparse import ArgumentParser
 from einops import rearrange
 
+from .jump_flood import jump_flood
+
 
 def log_metrics(metrics, prefix, epoch, do_print=True, do_wandb=True):
     metrics = {m: np.mean(metrics[m]) for m in metrics}
@@ -98,6 +100,8 @@ def animated_path(paths):
 def log_offset_field(data, tag, step):
   img = data['imagery']
   offsets = data['offsets']
+  mask = data['mask']
+  true_offsets = jump_flood(mask)[::16, ::16]
 
   fig, ax = plt.subplots(figsize=(7, 7))
   ax.axis('off')
@@ -105,17 +109,22 @@ def log_offset_field(data, tag, step):
 
   H, W, C = img.shape
 
-  ry = np.linspace(0, 1, offsets.shape[0]) * H
-  rx = np.linspace(0, 1, offsets.shape[1]) * W
+  ry = np.linspace(0, 1, offsets.shape[0]) * (H-1)
+  rx = np.linspace(0, 1, offsets.shape[1]) * (W-1)
   x, y = np.meshgrid(rx, ry)
 
   dy = data['offsets'][..., 0] * H/2
   dx = data['offsets'][..., 1] * H/2
+  ax.quiver(x, y, dx, dy,
+      scale=1, scale_units='xy', angles='xy', color='red')
+
+  true_dy = true_offsets[..., 0]
+  true_dx = true_offsets[..., 1]
+  ax.quiver(x, y, true_dx, true_dy,
+      scale=1, scale_units='xy', angles='xy', color='b')
 
   cy, cx = data['contour'].T
   ax.plot(cx, cy, c='b')
-  ax.quiver(x, y, dx, dy,
-      scale=1, scale_units='xy', angles='xy', color='red')
   
   wandb.log({tag: wandb.Image(fig)}, step=step)
   plt.close(fig)

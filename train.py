@@ -155,7 +155,5 @@ if __name__ == '__main__':
                 logging.log_segmentation(out, f'Segmentation/{step}', epoch)
             if 'offsets' in out:
                 logging.log_offset_field(out, f'Offsets/{step}', epoch)
-            with open('sample.pkl', 'wb') as f:
-              pickle.dump(out, f)
 
         logging.log_metrics(val_metrics, 'val', epoch)
