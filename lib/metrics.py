@@ -25,7 +25,7 @@ def squared_distance_point_to_linesegment(point, linestart, lineend):
     p_a = p - a
 
     t = jnp.dot(b_a, p_a) / jnp.dot(b_a, b_a)
-    t = jnp.clip(t, 0, 1)
+    t = jnp.nan_to_num(jnp.clip(t, 0, 1), nan=0.0, posinf=0.0, neginf=0.0)
     
     dist2 = jnp.sum(jnp.square((1-t)*a + t*b - p))
     
@@ -50,27 +50,10 @@ def squared_distance_points_to_best_segment(points, polyline):
     return get_point_to_best_segment(points, polyline)
 
 
-def mae_line_to_line(line1, line2):
-    """
-    Calculates the avg deviation of vertices in line1
-    to line2
-    """
-    squared_dist = squared_distance_points_to_best_segment(line1, line2)
-    return jnp.mean(jnp.sqrt(squared_dist))
-
-
-def rmse_line_to_line(line1, line2):
-    """
-    Calculates the rmse of 
-    """
-    squared_dist = squared_distance_points_to_best_segment(line1, line2)
-    return jnp.sqrt(jnp.mean(squared_dist))
-
-
 def forward_mae(terms):
   snake   = terms['snake']
   contour = terms['contour']
-  squared_dist = squared_distance_points_to_best_segment(terms)
+  squared_dist = squared_distance_points_to_best_segment(snake, contour)
   return jnp.mean(jnp.sqrt(squared_dist))
 
 
@@ -84,7 +67,7 @@ def backward_mae(terms):
 def forward_rmse(terms):
   snake   = terms['snake']
   contour = terms['contour']
-  squared_dist = squared_distance_points_to_best_segment(terms)
+  squared_dist = squared_distance_points_to_best_segment(snake, contour)
   return jnp.sqrt(jnp.mean(squared_dist))
 
 

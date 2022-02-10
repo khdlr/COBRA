@@ -10,15 +10,6 @@ from .jump_flood import jump_flood
 from einops import rearrange
 
 
-def stepwise(loss):
-  def inner(terms):
-    assert 'snake_steps' in terms
-    for step in terms['snake_steps']:
-      pass
-      # TODO
-  return inner
-
-
 def l2_loss(terms):
   snake   = terms['snake']
   contour = terms['contour']
@@ -47,10 +38,12 @@ def min_min_loss(terms):
 def offset_field_loss(terms):
   mask = terms['mask']
   offsets = terms['offsets']
-  print('mask', mask.shape)
-  print('offs', offsets.shape)
+  H, W = mask.shape
 
-  true_offsets = jax.vmap(jump_flood)(mask[..., 0])
+  true_offsets = jump_flood(mask)
+  true_offsets = (true_offsets * (2/H)) - 1.0
+  offsets = jax.image.resize(offsets, true_offsets.shape, 'bilinear')
+
   error = jnp.sum(jnp.square(offsets - true_offsets), axis=-1)
 
   return jnp.mean(error)

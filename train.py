@@ -45,9 +45,9 @@ def train_step(batch, state, key, net):
     def calculate_loss(params):
         terms, buffers = net(params, state.buffers, model_key, img, is_training=True)
         terms = {**terms, 'mask': mask, 'contour': contour}
-        loss_terms = loss_fn(terms)
+        loss = jnp.mean(jax.vmap(loss_fn)(terms))
 
-        return sum(loss_terms.values()), (buffers, terms, loss_terms)
+        return loss, (buffers, terms, {'loss': loss})
 
     (loss, (buffers, terms, metrics)), gradients = jax.value_and_grad(calculate_loss, has_aux=True)(state.params)
     updates, new_opt = optimizer(gradients, state.opt, state.params)
@@ -60,12 +60,12 @@ def train_step(batch, state, key, net):
       terms['snake_steps'] = [terms['snake']]
 
     # Convert from normalized to to pixel coordinates
-    scale = img.shape[1]
+    scale = img.shape[1] / 2
     for key in ['snake', 'snake_steps', 'contour']:
       terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
 
     for m in METRICS:
-        metrics[m] = METRICS[m](terms)
+        metrics[m] = jnp.mean(jax.vmap(METRICS[m])(terms))
 
     return metrics, changed_state(state,
         params=new_params,
@@ -153,5 +153,7 @@ if __name__ == '__main__':
             logging.log_anim(out, f"Animated/{step}", epoch)
             if 'seg' in out:
                 logging.log_segmentation(out, f'Segmentation/{step}', epoch)
+            with open('sample.pkl', 'wb') as f:
+              pickle.dump(out, f)
 
         logging.log_metrics(val_metrics, 'val', epoch)

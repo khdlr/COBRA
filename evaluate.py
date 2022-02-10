@@ -32,7 +32,7 @@ def test_step(batch, state, key, net):
 
     terms, _ = net(state.params, state.buffers, key, imagery, is_training=False)
 
-    out = {
+    terms = {
         **terms,
         'imagery': imagery,
         'contour': contour,
@@ -40,12 +40,12 @@ def test_step(batch, state, key, net):
     }
 
     if 'snake' not in terms:
-      out['snake'] = utils.snakify(preds, contour.shape[-2])
+      terms['snake'] = utils.snakify(preds, contour.shape[-2])
     if 'snake_steps' not in terms:
       terms['snake_steps'] = [terms['snake']]
 
     # Convert from normalized to to pixel coordinates
-    scale = imagery.shape[1]
+    scale = imagery.shape[1] / 2
     for key in ['snake', 'snake_steps', 'contour']:
       terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
 
@@ -53,7 +53,7 @@ def test_step(batch, state, key, net):
     for m in METRICS:
         metrics[m] = jax.vmap(METRICS[m])(terms)
 
-    return metrics, out
+    return metrics, terms
 
 
 if __name__ == '__main__':
