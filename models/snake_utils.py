@@ -23,7 +23,7 @@ def subdivide_polyline(polyline):
 
 def sample_at_vertices(vertices: jnp.ndarray, features: jnp.ndarray) -> jnp.ndarray:
     H, W, C = features.shape
-    vertices = (vertices + 1.0) * (jnp.array([H-1, W-1]) / 2.0)
+    vertices = (vertices + 1.0) * (jnp.array([[H-1, W-1]]) / 2.0)
     def resample_feature(feature_map: jnp.ndarray):
         return jnd.map_coordinates(feature_map, vertices.T, order=1, mode='constant')
 

@@ -113,15 +113,15 @@ def log_offset_field(data, tag, step):
   rx = np.linspace(0, 1, offsets.shape[1]) * (W-1)
   x, y = np.meshgrid(rx, ry)
 
-  dy = data['offsets'][..., 0] * H/2
-  dx = data['offsets'][..., 1] * H/2
-  ax.quiver(x, y, dx, dy,
-      scale=1, scale_units='xy', angles='xy', color='red')
-
   true_dy = true_offsets[..., 0]
   true_dx = true_offsets[..., 1]
   ax.quiver(x, y, true_dx, true_dy,
       scale=1, scale_units='xy', angles='xy', color='b')
+
+  dy = data['offsets'][..., 0] * H/2
+  dx = data['offsets'][..., 1] * H/2
+  ax.quiver(x, y, dx, dy,
+      scale=1, scale_units='xy', angles='xy', color='red')
 
   cy, cx = data['contour'].T
   ax.plot(cx, cy, c='b')
