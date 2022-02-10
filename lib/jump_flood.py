@@ -67,6 +67,7 @@ def substep(data, size):
     return data, None
 
 
+@jax.jit
 def jump_flood(mask):
     H, W = mask.shape
     steps = [1, 1]
@@ -85,6 +86,5 @@ def jump_flood(mask):
 
     result, _ = jax.lax.scan(substep, data, steps, reverse=True)
 
-    m, y, x, py, px = data
-
-    return jnp.stack([y-py, x-px], axis=-1)
+    m, y, x, py, px = result
+    return jnp.stack([py-y, px-x], axis=-1)
