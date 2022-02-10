@@ -27,9 +27,9 @@
 #   head: SnakeHead
 # loss_function: SoftDTW(0.001, 8)
 
-model: RupprechtDAC
+model: SimplifiedRupprechtDAC
 model_args:
-  iterations: 64
+  iterations: 32
   tau: 0.2
 loss_function: offset_field_loss
 
