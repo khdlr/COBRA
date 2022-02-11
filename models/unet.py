@@ -4,9 +4,10 @@ import haiku as hk
 
 
 class UNet:
-    def __init__(self, width, depth=4):
+    def __init__(self, width, depth=4, out_channels=1):
         self.width = width
         self.depth = depth
+        self.out_channels = out_channels
 
     def __call__(self, x, is_training=False):
         skip_connections = []
@@ -30,8 +31,8 @@ class UNet:
             x = jax.nn.relu(x)
             x = Convx2(jnp.concatenate([x, skip], axis=-1), channels, is_training)
 
-        x = hk.Conv2D(1, 1)(x)
-        return x
+        x = hk.Conv2D(self.out_channels, 1)(x)
+        return {'seg': x}
 
 
 def BatchNorm():
