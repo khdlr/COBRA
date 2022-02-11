@@ -31,6 +31,7 @@ model: RupprechtUNetDAC
 model_args:
   iterations: 64
   tau: 0.2
+  sobolev: True
 loss_function: offset_field_loss
 
 # Data args
