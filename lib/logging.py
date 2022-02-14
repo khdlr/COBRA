@@ -52,7 +52,7 @@ def log_anim(data, tag, step):
     truth = data['contour']
     gtpath = make_path_string(truth)
 
-    pred = data['snake_steps']
+    pred = list(data['snake_steps'])
     pred = pred + [pred[-1], pred[-1]]
     path_html = animated_path(pred)
 
