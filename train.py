@@ -140,7 +140,7 @@ if __name__ == '__main__':
               if m not in trn_metrics: trn_metrics[m] = []
               trn_metrics[m].append(metrics[m])
 
-        logging.log_metrics(trn_metrics, 'trn', epoch, do_print=False)
+        logging.log_metrics(trn_metrics, 'trn', epoch, do_print=True)
 
         if epoch % 10 != 0:
             continue

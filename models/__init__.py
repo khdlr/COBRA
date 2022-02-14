@@ -5,6 +5,7 @@ from .unet import UNet
 from .calfin import CFM
 from .hed_unet import HEDUNet
 from .rupprecht_dac import RupprechtDAC, RupprechtUNetDAC
+from .marcos_dsac import MarcosDSAC
 
 import jax
 import haiku as hk

@@ -27,12 +27,10 @@
 #   head: SnakeHead
 # loss_function: SoftDTW(0.001, 8)
 
-model: RupprechtUNetDAC
+model: MarcosDSAC
 model_args:
   iterations: 64
-  tau: 0.2
-  sobolev: True
-loss_function: offset_field_loss
+loss_function: l2_loss
 
 # Data args
 batch_size: 16
