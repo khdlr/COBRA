@@ -30,10 +30,10 @@ PATIENCE = 100
 def get_optimizer():
   lr_schedule = optax.warmup_cosine_decay_schedule(
     init_value=1e-7,
-    peak_value=1e-5,
+    peak_value=1e-3,
     warmup_steps=10 * 487,
     decay_steps=(500-10) * 487,
-    end_value=1e-7
+    end_value=4e-5
   )
   return optax.adam(lr_schedule, b1=0.5, b2=0.99)
 
@@ -91,17 +91,8 @@ if __name__ == '__main__':
     persistent_val_key = jax.random.PRNGKey(27)
 
     config = yaml.load(open('config.yml'), Loader=yaml.SafeLoader)
-    lf = config['loss_function']
-    if lf.endswith(')'):
-        lf_name, lf_args = lf[:-1].split('(')
-        loss_cls = getattr(losses, lf_name)
-        if lf_args: 
-            lf_args = yaml.load(f'[{lf_args}]', Loader=yaml.SafeLoader)
-            loss_fn = loss_cls(*lf_args)
-        else:
-            loss_fn = loss_cls()
-    else:
-        loss_fn = getattr(losses, lf)
+    # Don't do this at home, kids!
+    loss_fn = eval(config['loss_function'], losses.__dict__)
 
     # initialize data loading
     train_key, subkey = jax.random.split(train_key)
@@ -143,7 +134,7 @@ if __name__ == '__main__':
         logging.log_metrics(trn_metrics, 'trn', epoch, do_print=True)
 
         if epoch % 10 != 0:
-            continue
+             continue
 
         # Save Checkpoint
         save_state(state, run_dir / f'latest.pkl')

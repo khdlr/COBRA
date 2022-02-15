@@ -12,6 +12,20 @@ from .jump_flood import jump_flood
 from einops import rearrange
 
 
+def stepwise(loss_fn):
+  """Decorator that inserts each of `snake_steps` for `snake`
+  and calls the wrapped loss_fn on it.
+  Returns the mean loss accumulated in the process.
+  """
+  def inner(terms):
+    losses = []
+    for step in range(terms['snake_steps'].shape[1]):
+      step_terms = {**terms, 'snake': terms['snake_steps'][:, step]}
+      losses.append(loss_fn(step_terms))
+    return jnp.mean(jnp.stack(losses))
+  return inner
+
+
 def l2_loss(terms):
   snake   = terms['snake']
   contour = terms['contour']

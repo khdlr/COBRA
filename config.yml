@@ -30,7 +30,8 @@
 model: MarcosDSAC
 model_args:
   iterations: 64
-loss_function: l2_loss
+  stop_grad: True
+loss_function: stepwise(l2_loss)
 
 # Data args
 batch_size: 16

@@ -16,13 +16,11 @@ from jax.experimental.host_callback import id_print
 def checknan(tensor, tag):
   id_print(jnp.isnan(tensor).any(), tag=tag)
 
-@jax.vmap
-def active_contour_step(snake_params, snake, d):
-  gamma = 1.0
-  max_px_move = 0.1
-
+def active_contour_step(snake_params, snake, d, stop_grad, gamma, max_px_move):
   params = snake_utils.sample_at_vertices(snake, snake_params)
-  L, C =  snake.shape
+  L, C = snake.shape
+  if stop_grad:
+    snake = jax.lax.stop_gradient(snake)
 
   f = params[:, :2]
   alpha = params[:,  2]
@@ -61,10 +59,11 @@ def active_contour_step(snake_params, snake, d):
 
 
 class MarcosDSAC():
-  def __init__(self, iterations=64, vertices=64):
+  def __init__(self, iterations=64, vertices=64, stop_grad=False):
     super().__init__()
     self.iterations = iterations
     self.vertices = vertices
+    self.stop_grad = stop_grad
 
   def __call__(self, imagery, is_training=False):
     snake_params = UNet(32, out_channels=5)(imagery, is_training)['seg']
@@ -74,10 +73,14 @@ class MarcosDSAC():
     make_bezier = jax.vmap(partial(snake_utils.random_bezier, vertices=self.vertices))
     snake = make_bezier(init_keys)
 
-    update_fn = lambda snake_d, i: active_contour_step(snake_params, snake_d[0], snake_d[1])
+    # build snake step function
+    step_fn_raw = partial(active_contour_step, stop_grad=self.stop_grad, gamma=1.0, max_px_move=0.2)
+    step_fn_vmapped = jax.vmap(step_fn_raw)
+    step_fn = lambda snake_d, i: step_fn_vmapped(snake_params, snake_d[0], snake_d[1])
+
     init = (snake, jnp.zeros_like(snake))
 
-    _, steps = jax.lax.scan(update_fn, init, None, length=self.iterations)
+    _, steps = jax.lax.scan(step_fn, init, None, length=self.iterations)
     steps = rearrange(steps, 'T B L C -> B T L C')
 
     return {'snake': steps[:, -1], 'snake_steps': steps}
