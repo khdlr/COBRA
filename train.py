@@ -30,10 +30,10 @@ PATIENCE = 100
 def get_optimizer():
   lr_schedule = optax.warmup_cosine_decay_schedule(
     init_value=1e-7,
-    peak_value=1e-5,
+    peak_value=1e-3,
     warmup_steps=10 * 487,
     decay_steps=(500-10) * 487,
-    end_value=1e-7
+    end_value=4e-5
   )
   return optax.adam(lr_schedule, b1=0.5, b2=0.99)
 
