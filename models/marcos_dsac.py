@@ -37,19 +37,20 @@ def active_contour_step(snake_params, snake, d, stop_grad, gamma, max_px_move):
     thin_plate_term = jnp.sum(beta * jnp.sum(jnp.square(snake__), axis=-1))
     return membrane_term + thin_plate_term
 
-  def E_b(snake):
-    t = jnp.linspace(0, 1, 10, endpoint=False).reshape(-1, 1, 1)
-    snake_l = snake[ :-1].reshape(1, L-1, C)
-    snake_r = snake[1:  ].reshape(1, L-1, C)
+  # def E_b(snake):
+  #   t = jnp.linspace(0, 1, 10, endpoint=False).reshape(-1, 1, 1)
+  #   snake_l = snake[ :-1].reshape(1, L-1, C)
+  #   snake_r = snake[1:  ].reshape(1, L-1, C)
 
-    # snake_r|l: 1xLxC
-    # t: Tx1x1
-    sample_points = (1-t) * snake_r + t * snake_r
-    sample_points = sample_points.reshape(-1, C)
-    kappas = snake_utils.sample_at_vertices(sample_points, kappa)
-    return jnp.mean(kappas)
+  #   # snake_r|l: 1xLxC
+  #   # t: Tx1x1
+  #   sample_points = (1-t) * snake_r + t * snake_r
+  #   sample_points = sample_points.reshape(-1, C)
+  #   kappas = snake_utils.sample_at_vertices(sample_points, kappa)
+  #   return jnp.mean(kappas)
 
-  d = -0.5 * max_px_move * jnp.tanh(f - jax.grad(E_b)(snake)*gamma) + 0.5 * d
+  # d = -0.5 * max_px_move * jnp.tanh(f - jax.grad(E_b)(snake)*gamma) + 0.5 * d
+  d = -0.5 * max_px_move * jnp.tanh(f) + 0.5 * d
   snake = snake + gamma * d - jax.grad(E_int)(snake) * gamma
 
   snake = jnp.clip(snake, -1, 1)
