@@ -32,7 +32,7 @@ def squared_distance_point_to_linesegment(point, linestart, lineend):
     return dist2
 
 
-def squared_distance_point_to_best_segment(point, polyline):
+def squared_distance_point_to_curve(point, polyline):
     startpoints = polyline[:-1]
     endpoints   = polyline[1:]
     
@@ -44,37 +44,37 @@ def squared_distance_point_to_best_segment(point, polyline):
     return jnp.where(jnp.isnan(min_dist), 0, min_dist)
 
 
-def squared_distance_points_to_best_segment(points, polyline):
-    get_point_to_best_segment = jax.vmap(squared_distance_point_to_best_segment,
+def squared_distance_points_to_curve(points, polyline):
+    get_point_to_curve = jax.vmap(squared_distance_point_to_curve,
                                  in_axes=[0, None])
-    return get_point_to_best_segment(points, polyline)
+    return get_point_to_curve(points, polyline)
 
 
 def forward_mae(terms):
   snake   = terms['snake']
   contour = terms['contour']
-  squared_dist = squared_distance_points_to_best_segment(snake, contour)
+  squared_dist = squared_distance_points_to_curve(snake, contour)
   return jnp.mean(jnp.sqrt(squared_dist))
 
 
 def backward_mae(terms):
   snake   = terms['snake']
   contour = terms['contour']
-  squared_dist = squared_distance_points_to_best_segment(contour, snake)
+  squared_dist = squared_distance_points_to_curve(contour, snake)
   return jnp.mean(jnp.sqrt(squared_dist))
 
 
 def forward_rmse(terms):
   snake   = terms['snake']
   contour = terms['contour']
-  squared_dist = squared_distance_points_to_best_segment(snake, contour)
+  squared_dist = squared_distance_points_to_curve(snake, contour)
   return jnp.sqrt(jnp.mean(squared_dist))
 
 
 def backward_rmse(terms):
   snake   = terms['snake']
   contour = terms['contour']
-  squared_dist = squared_distance_points_to_best_segment(contour, snake)
+  squared_dist = squared_distance_points_to_curve(contour, snake)
   return jnp.sqrt(jnp.mean(squared_dist))
 
 

@@ -19,7 +19,7 @@
 # model: DeepSnake
 # model_args:
 #   backbone: Xception
-#   model_dim: 128
+#   model_dim: 1024
 #   iterations: 4
 #   coord_features: true
 #   stop_grad: true
@@ -30,8 +30,7 @@
 model: MarcosDSAC
 model_args:
   iterations: 64
-  stop_grad: True
-loss_function: stepwise(l2_loss)
+loss_function: marcos_dsac_loss
 
 # Data args
 batch_size: 16

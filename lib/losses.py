@@ -7,7 +7,7 @@ from jax.experimental.host_callback import id_print
 
 from abc import ABC, abstractmethod
 
-from .utils import pad_inf, fmt, distance_matrix, min_pool
+from .utils import pad_inf, fmt, distance_matrix, min_pool, draw_poly
 from .jump_flood import jump_flood
 from einops import rearrange
 
@@ -205,6 +205,44 @@ class SoftDTW(AbstractDTW):
 
   def minimum(self, args):
     return self.minimum_impl(args)
+
+
+def marcos_dsac_loss(terms):
+  mask    = terms['mask']
+  snake   = jax.lax.stop_gradient(terms['snake'])
+  contour = terms['contour']
+
+  mapE = terms['mapE'][..., 0]
+  mapA = terms['mapA']
+  mapB = terms['mapB'][..., 0]
+  # kappa is left out
+
+  H, W = mask.shape
+
+  # Regularization
+  lossE = 0.005 * jnp.square(mapE)
+  lossA = 0.005 * jnp.square(mapA)
+  lossB = 0.005 * jnp.square(mapB)
+
+  der1    = jnp.gradient(snake, axis=0)
+  der2    = jnp.gradient(der1, axis=0)
+  der1    = jnp.linalg.norm(der1, axis=-1)
+  der2    = jnp.linalg.norm(der2, axis=-1)
+
+  der1_GT = jnp.gradient(contour, axis=0)
+  der2_GT = jnp.gradient(der1_GT, axis=0)
+  der1_GT = jnp.linalg.norm(der1_GT, axis=-1)
+  der2_GT = jnp.linalg.norm(der2_GT, axis=-1)
+
+  lossE += mapE * (draw_poly(contour, [H, W], 12) - draw_poly(snake, [H, W], 12))
+  lossA += mapA * (jnp.mean(der1_GT) - jnp.mean(der1))
+  lossB += mapB * (draw_poly(contour, [H, W], 12, der2_GT) - draw_poly(snake, [H, W], 12, der2))
+
+  return jnp.sum(lossE) + jnp.sum(lossB) + jnp.sum(lossA)
+
+
+def dance_loss(terms):
+  TODO
 
 
 # Internals...
