@@ -131,10 +131,10 @@ if __name__ == '__main__':
               if m not in trn_metrics: trn_metrics[m] = []
               trn_metrics[m].append(metrics[m])
 
-        logging.log_metrics(trn_metrics, 'trn', epoch, do_print=True)
+        logging.log_metrics(trn_metrics, 'trn', epoch, do_print=False)
 
-        if epoch % 10 != 0:
-             continue
+        # if epoch % 10 != 0:
+        #      continue
 
         # Save Checkpoint
         save_state(state, run_dir / f'latest.pkl')

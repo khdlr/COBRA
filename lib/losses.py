@@ -260,8 +260,6 @@ def dance_loss(terms):
   snake_steps = terms['snake_steps']
   contour = terms['contour']
 
-  print(jax.tree_map(lambda x: x.shape, terms))
-
   loss_terms = {}
 
   # Edge loss
@@ -277,7 +275,7 @@ def dance_loss(terms):
 
   weights = jax.nn.softmax(jnp.array([1, 1, 2]) / 3)
   for i, (weight, snake) in enumerate(zip(weights, snake_steps[1:])):
-    loss_terms[f'stage_{i}_loss'] = optax.huber_loss(snake, contour, delta=0.033)
+    loss_terms[f'stage_{i}_loss'] = 10 * optax.huber_loss(snake, contour, delta=0.033)
 
   return loss_terms
 

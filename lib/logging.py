@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import haiku as hk
 import numpy as np
 import wandb
 import matplotlib.pyplot as plt
@@ -43,6 +44,7 @@ def log_segmentation(data, tag, step):
 
 def log_edge(data, tag, step):
     H, W, C = data['imagery'].shape
+    mask = data['mask']
     true_edge = hk.max_pool(mask, [3, 3], [1, 1], "SAME") != min_pool(mask, [3, 3], [1, 1], "SAME")
 
     fig, axs = plt.subplots(1, 3, figsize=(10, 3))

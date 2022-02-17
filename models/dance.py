@@ -29,7 +29,7 @@ class DANCE():
     backbone = self.backbone()
     features = backbone(imagery, is_training)
     snake_input, edge_map = self.refinement_head(features, is_training)
-    snake_res = self.snake_head(snake_input, edge_map, is_training)
+    snake_res = self.snake_head(snake_input, is_training)
     return {**snake_res, 'edge': edge_map}
 
 
@@ -65,8 +65,9 @@ class EdgeSnakeFPNHead():
     a = hk.Conv2D(1, 3, w_init=hk.initializers.TruncatedNormal(0.01))(a)
     a = jax.nn.sigmoid(a)
     # conv3
+    merged_features = jnp.concatenate([a, merged_features], axis=-1)
 
-    return merged_features, a
+    return merged_features, pred_edge
 
 
 class SnakeBlock(hk.Module):
@@ -119,7 +120,7 @@ class SnakeHead():
   def __init__(self, vertices):
     self.vertices = vertices
 
-  def __call__(self, features, edge_band, is_training):
+  def __call__(self, features, is_training):
     #TODO
     # bottom_out
     features = hk.Conv2D(128, 3, with_bias=False)(features)
@@ -128,8 +129,6 @@ class SnakeHead():
     features = jax.nn.relu(hk.GroupNorm(32)(features))
 
     # Snake deformation
-    features = jnp.concatenate([edge_band, features], axis=-1)
-
     init_keys = jax.random.split(hk.next_rng_key(), features.shape[0])
     make_bezier = jax.vmap(partial(random_bezier, vertices=self.vertices))
     snake = make_bezier(init_keys)
