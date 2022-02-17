@@ -27,10 +27,15 @@
 #   head: SnakeHead
 # loss_function: SoftDTW(0.001, 8)
 
-model: VanillaDeepSnake
+# model: VanillaDeepSnake
+# model_args:
+#   backbone: Xception
+# loss_function: stepwise(huber_loss)
+
+model: DANCE
 model_args:
   backbone: Xception
-loss_function: stepwise(huber_loss)
+loss_function: dance_loss
 
 # Data args
 batch_size: 16
