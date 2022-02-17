@@ -51,8 +51,8 @@ def log_edge(data, tag, step):
     for ax in axs:
         ax.axis('off')
     axs[0].imshow(np.asarray(data['imagery']), cmap='gray')
-    axs[1].imshow(np.asarray(data['edge'][:,:,0]), cmap='gray', vmin=0, vmax=1)
-    axs[2].imshow(np.asarray(true_edge), cmap='gray', vmin=0, vmax=1)
+    axs[1].imshow(np.asarray(data['edge'][:,:,0]), cmap='binary', vmin=0, vmax=1)
+    axs[2].imshow(np.asarray(true_edge), cmap='binary', vmin=0, vmax=1)
 
     wandb.log({tag: wandb.Image(fig)}, step=step)
     plt.close(fig)

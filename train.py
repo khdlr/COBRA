@@ -133,8 +133,8 @@ if __name__ == '__main__':
 
         logging.log_metrics(trn_metrics, 'trn', epoch, do_print=False)
 
-        # if epoch % 10 != 0:
-        #      continue
+        if epoch % 10 != 0:
+             continue
 
         # Save Checkpoint
         save_state(state, run_dir / f'latest.pkl')
