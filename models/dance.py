@@ -121,7 +121,6 @@ class SnakeHead():
     self.vertices = vertices
 
   def __call__(self, features, is_training):
-    #TODO
     # bottom_out
     features = hk.Conv2D(128, 3, with_bias=False)(features)
     features = jax.nn.relu(hk.GroupNorm(32)(features))

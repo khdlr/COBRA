@@ -27,9 +27,10 @@
 #   head: SnakeHead
 # loss_function: SoftDTW(0.001, 8)
 
-model: DANCE
-model_args: {}
-loss_function: dance_loss
+model: VanillaDeepSnake
+model_args:
+  backbone: ResNet50
+loss_function: stepwise(huber_loss)
 
 # Data args
 batch_size: 16

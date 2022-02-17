@@ -7,6 +7,7 @@ from .hed_unet import HEDUNet
 from .rupprecht_dac import RupprechtDAC, RupprechtUNetDAC
 from .marcos_dsac import MarcosDSAC
 from .dance import DANCE
+from .vanilla_deepsnake import VanillaDeepSnake
 
 import jax
 import haiku as hk

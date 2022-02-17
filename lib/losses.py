@@ -31,11 +31,11 @@ def stepwise(loss_fn):
   Returns the mean loss accumulated in the process.
   """
   def inner(terms):
-    losses = []
-    for step in range(terms['snake_steps'].shape[1]):
-      step_terms = {**terms, 'snake': terms['snake_steps'][:, step]}
-      losses.append(loss_fn(step_terms))
-    return jnp.mean(jnp.stack(losses))
+    losses = {}
+    for step in range(len(terms['snake_steps'])):
+      step_terms = {**terms, 'snake': terms['snake_steps'][step]}
+      losses[f'loss_{step}'] = loss_fn(step_terms)
+    return losses
   return inner
 
 
@@ -51,6 +51,13 @@ def l1_loss(terms):
   snake   = terms['snake']
   contour = terms['contour']
   loss = jnp.sum(jnp.abs(snake - contour), axis=-1)
+  return loss
+
+
+def huber_loss(terms):
+  snake   = terms['snake']
+  contour = terms['contour']
+  loss = optax.huber_loss(snake, contour, delta=0.05)
   return loss
 
 
