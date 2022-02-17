@@ -27,10 +27,9 @@
 #   head: SnakeHead
 # loss_function: SoftDTW(0.001, 8)
 
-model: MarcosDSAC
-model_args:
-  iterations: 64
-loss_function: marcos_dsac_loss
+model: DANCE
+model_args: {}
+loss_function: dance_loss
 
 # Data args
 batch_size: 16

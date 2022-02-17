@@ -83,7 +83,7 @@ class MarcosDSAC():
     init = (snake, jnp.zeros_like(snake))
 
     _, steps = jax.lax.scan(step_fn, init, None, length=self.iterations)
-    steps = rearrange(steps, 'T B L C -> B T L C')
+    steps = list(steps)
 
-    return {'snake': steps[:, -1], 'snake_steps': steps, 'mapE': D, 'mapA': alpha, 'mapB': beta}
+    return {'snake': steps[-1], 'snake_steps': steps, 'mapE': D, 'mapA': alpha, 'mapB': beta}
 

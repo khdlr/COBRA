@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 from jax.scipy.special import logsumexp
 import haiku as hk
+import optax
 
 from jax.experimental.host_callback import id_print
 
@@ -10,6 +11,18 @@ from abc import ABC, abstractmethod
 from .utils import pad_inf, fmt, distance_matrix, min_pool, draw_poly
 from .jump_flood import jump_flood
 from einops import rearrange
+
+
+def call_loss(loss_fn, terms):
+    loss_terms = jax.vmap(loss_fn)(terms)
+    loss_terms = jax.tree_map(jnp.mean, loss_terms)
+    if isinstance(loss_terms, dict):
+      total_loss = sum(loss_terms.values())
+    else:
+      total_loss = loss_terms
+      loss_terms = {}
+    loss_terms['loss'] = total_loss
+    return total_loss, loss_terms
 
 
 def stepwise(loss_fn):
@@ -242,7 +255,31 @@ def marcos_dsac_loss(terms):
 
 
 def dance_loss(terms):
-  TODO
+  edge = terms['edge'][..., 0]
+  mask = terms['mask']
+  snake_steps = terms['snake_steps']
+  contour = terms['contour']
+
+  print(jax.tree_map(lambda x: x.shape, terms))
+
+  loss_terms = {}
+
+  # Edge loss
+  true_edge = hk.max_pool(mask, [3, 3], [1, 1], "SAME") == min_pool(mask, [3, 3], [1, 1], "SAME")
+  edge = jax.image.resize(edge, true_edge.shape, 'bilinear')
+
+  p2 = jnp.sum(edge * edge)
+  g2 = jnp.sum(true_edge * true_edge)
+  pg = jnp.sum(edge * true_edge)
+
+  dice_coef = (2*pg) / (p2+g2+0.0001)
+  loss_terms['dice_loss'] = 1.0 - dice_coef
+
+  weights = jax.nn.softmax(jnp.array([1, 1, 2]) / 3)
+  for i, (weight, snake) in enumerate(zip(weights, snake_steps[1:])):
+    loss_terms[f'stage_{i}_loss'] = optax.huber_loss(snake, contour, delta=0.033)
+
+  return loss_terms
 
 
 # Internals...

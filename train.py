@@ -48,7 +48,7 @@ def train_step(batch, state, key, net):
     def calculate_loss(params):
         terms, buffers = net(params, state.buffers, model_key, img, is_training=True)
         terms = {**terms, 'mask': mask, 'contour': contour}
-        loss = jnp.mean(jax.vmap(loss_fn)(terms))
+        loss, loss_terms = losses.call_loss(loss_fn, terms)
 
         return loss, (buffers, terms, {'loss': loss})
 
