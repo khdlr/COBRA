@@ -29,8 +29,9 @@ class VanillaDeepSnake():
       # evolve
       deformer = SnakeNet([1, 1, 1, 2, 2, 4, 4])
 
-      sampled_features = jax.vmap(sample_at_vertices)(snake, features)
-      concat_features = jnp.concatenate([sampled_features, snake], axis=-1)
+      sampling_locations = jax.lax.stop_gradient(snake)
+      sampled_features = jax.vmap(sample_at_vertices)(sampling_locations, features)
+      concat_features = jnp.concatenate([sampled_features, sampling_locations], axis=-1)
       pred_offsets = deformer(concat_features, is_training)
       pred_offsets = jnp.tanh(pred_offsets) * 2
 

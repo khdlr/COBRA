@@ -29,7 +29,7 @@
 
 model: VanillaDeepSnake
 model_args:
-  backbone: ResNet50
+  backbone: Xception
 loss_function: stepwise(huber_loss)
 
 # Data args
