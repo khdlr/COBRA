@@ -265,7 +265,7 @@ def dance_loss(terms):
   loss_terms = {}
 
   # Edge loss
-  true_edge = hk.max_pool(mask, [3, 3], [1, 1], "SAME") == min_pool(mask, [3, 3], [1, 1], "SAME")
+  true_edge = hk.max_pool(mask, [3, 3], [1, 1], "SAME") != min_pool(mask, [3, 3], [1, 1], "SAME")
   edge = jax.image.resize(edge, true_edge.shape, 'bilinear')
 
   p2 = jnp.sum(edge * edge)

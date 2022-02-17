@@ -50,7 +50,7 @@ def train_step(batch, state, key, net):
         terms = {**terms, 'mask': mask, 'contour': contour}
         loss, loss_terms = losses.call_loss(loss_fn, terms)
 
-        return loss, (buffers, terms, {'loss': loss})
+        return loss, (buffers, terms, loss_terms)
 
     (loss, (buffers, terms, metrics)), gradients = jax.value_and_grad(calculate_loss, has_aux=True)(state.params)
     updates, new_opt = optimizer(gradients, state.opt, state.params)
@@ -156,5 +156,7 @@ if __name__ == '__main__':
                 logging.log_segmentation(out, f'Segmentation/{step}', epoch)
             if 'offsets' in out:
                 logging.log_offset_field(out, f'Offsets/{step}', epoch)
+            if 'edge' in out:
+                logging.log_edge(out, f'Edge/{step}', epoch)
 
         logging.log_metrics(val_metrics, 'val', epoch)

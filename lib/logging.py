@@ -14,6 +14,7 @@ from argparse import ArgumentParser
 from einops import rearrange
 
 from .jump_flood import jump_flood
+from .utils import min_pool
 
 
 def log_metrics(metrics, prefix, epoch, do_print=True, do_wandb=True):
@@ -38,6 +39,22 @@ def log_segmentation(data, tag, step):
 
     wandb.log({tag: wandb.Image(fig)}, step=step)
     plt.close(fig)
+
+
+def log_edge(data, tag, step):
+    H, W, C = data['imagery'].shape
+    true_edge = hk.max_pool(mask, [3, 3], [1, 1], "SAME") != min_pool(mask, [3, 3], [1, 1], "SAME")
+
+    fig, axs = plt.subplots(1, 3, figsize=(10, 3))
+    for ax in axs:
+        ax.axis('off')
+    axs[0].imshow(np.asarray(data['imagery']), cmap='gray')
+    axs[1].imshow(np.asarray(data['edge'][:,:,0]), cmap='gray', vmin=0, vmax=1)
+    axs[2].imshow(np.asarray(true_edge), cmap='gray', vmin=0, vmax=1)
+
+    wandb.log({tag: wandb.Image(fig)}, step=step)
+    plt.close(fig)
+
 
 
 def log_anim(data, tag, step):
