@@ -27,15 +27,16 @@
 #   head: SnakeHead
 # loss_function: SoftDTW(0.001, 8)
 
+model: RupprechtUNetDAC
+model_args:
+  tau: 0.2
+  iterations: 64
+loss_function: offset_field_loss
+
 # model: VanillaDeepSnake
 # model_args:
 #   backbone: Xception
 # loss_function: stepwise(huber_loss)
-
-model: VanillaDeepSnake
-model_args:
-  backbone: Xception
-loss_function: stepwise(huber_loss)
 
 # Data args
 batch_size: 16

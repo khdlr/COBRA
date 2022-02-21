@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     config['data_root'] = '../aicore/uc1/data/'
     config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
-    loaders['TUD_test'] = get_loader(1, 4, 'test', config, drop_last=False, subtiles=False)
+    loaders['TUD_test'] = get_loader(4, 1, 'test', config, drop_last=False, subtiles=False)
 
     for sample_batch in loaders[datasets[0]]:
         break
