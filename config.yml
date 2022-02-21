@@ -32,10 +32,10 @@
 #   backbone: Xception
 # loss_function: stepwise(huber_loss)
 
-model: DANCE
+model: VanillaDeepSnake
 model_args:
   backbone: Xception
-loss_function: dance_loss
+loss_function: stepwise(huber_loss)
 
 # Data args
 batch_size: 16
