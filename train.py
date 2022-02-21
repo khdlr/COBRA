@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     running_min = np.inf
     last_improvement = 0
-    wandb.init(project='Deep Snake', config=config)
+    wandb.init(project='Deep Snake TUD', config=config)
 
     run_dir = Path(f'runs/{wandb.run.id}/')
     run_dir.mkdir(parents=True)

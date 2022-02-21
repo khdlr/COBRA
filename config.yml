@@ -39,10 +39,10 @@ loss_function: dance_loss
 
 # Data args
 batch_size: 16
-data_root: '../CALFIN/training/data'
-data_channels: [2]
-# data_root: '../aicore/uc1/data/'
-# data_channels:
-#   - 'SPECTRAL/BANDS/STD_2s_B8_8b'
+# data_root: '../CALFIN/training/data'
+# data_channels: [2]
+data_root: '../aicore/uc1/data/'
+data_channels:
+  - 'SPECTRAL/BANDS/STD_2s_B8_8b'
 tile_size: 256
 vertices: 64
