@@ -33,10 +33,10 @@
 #   iterations: 64
 # loss_function: offset_field_loss
 
-model: VanillaDeepSnake
+model: DANCE
 model_args:
   backbone: ResNet50
-loss_function: stepwise(huber_loss)
+loss_function: dance_loss
 
 # Data args
 batch_size: 16
