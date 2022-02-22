@@ -1,49 +1,22 @@
 # Model Specification
 
-# model: HEDUNet
-# model_args:
-#   width: 16
-#   depth: 6
-# loss_function: hed_unet_loss
-
-# model: UNet
-# model_args:
-#     width: 64
-#     depth: 4
-# loss_function: bce
-
-# model: CFM
-# model_args: {}
-# loss_function: calfin_loss
-
-# model: DeepSnake
-# model_args:
-#   backbone: Xception
-#   model_dim: 1024
-#   iterations: 4
-#   coord_features: true
-#   stop_grad: true
-#   weight_sharing: true
-#   head: SnakeHead
-# loss_function: SoftDTW(0.001, 8)
-
-# model: RupprechtUNetDAC
-# model_args:
-#   tau: 0.2
-#   iterations: 64
-# loss_function: offset_field_loss
-
-model: DANCE
+model: DeepSnake
 model_args:
-  backbone: ResNet50
-loss_function: dance_loss
+  backbone: Xception
+  model_dim: 1024
+  iterations: 4
+  coord_features: true
+  stop_grad: true
+  weight_sharing: true
+  head: SnakeHead
+loss_function: stepwise(huber_loss)
 
 # Data args
 batch_size: 16
-# data_root: '../CALFIN/training/data'
-# data_channels: [2]
-data_root: '../aicore/uc1/data/'
-data_channels:
-  - 'SPECTRAL/BANDS/STD_2s_B8_8b'
+data_root: '../CALFIN/training/data'
+data_channels: [2]
+# data_root: '../aicore/uc1/data/'
+# data_channels:
+#   - 'SPECTRAL/BANDS/STD_2s_B8_8b'
 tile_size: 256
 vertices: 64
