@@ -9,7 +9,7 @@ model_args:
   stop_grad: true
   weight_sharing: true
   head: SnakeHead
-loss_function: stepwise(huber_loss)
+loss_function: stepwise(l1_loss)
 
 # Data args
 batch_size: 16
