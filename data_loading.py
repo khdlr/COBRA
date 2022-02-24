@@ -96,13 +96,13 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         self.mode = mode
         self.subtiles = subtiles
 
-        self.channels = config['data_channels']
+        # self.channels = config['data_channels']
         self.tilesize = config['tile_size']
         self.vertices = config['vertices']
         self.root = Path(config['data_root'])
-        if (self.root / 'ground_truth').exists() and (self.root / 'reference_data').exists():
-            self.data_source = 'TUD'
-            ## Loading TUD dataset
+        self.data_source = config['dataset']
+
+        if self.data_source == 'TUD':
             gts = sorted(self.root.glob('ground_truth/*/*/*_30m.tif'))
 
             istest = lambda gt: gt.parent.name.startswith('202') 
@@ -118,7 +118,29 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
                 else:
                     gts = filter(isval, gts)
             self.gts = list(gts)
-        else:
+        elif self.data_source == 'TUD-MS':
+            if mode in ('train', 'validation'):
+                ref_root = self.root / 'TRAIN'
+            elif mode == 'test':
+                ref_root = self.root / 'TEST'
+            else:
+                raise ValueError(f'Cannot provide data for dataset mode {mode}')
+
+            refs = sorted(ref_root.glob('*/*'))
+            isval = lambda gt: gt.name.endswith('3')
+            if mode == 'validation':
+                refs = filter(isval, refs)
+            elif mode == 'train':
+                refs = filter(fnot(isval), refs)
+            
+            self.gts = []
+            for ref in refs:
+                *_, site, date = ref.parts
+                gt = self.root / 'ground_truth' / site / date / f'{date}_30m.tif'
+                assert gt.exists()
+                self.gts.append(gt)
+
+        elif self.data_source == 'CALFIN':
             self.data_source = 'CALFIN'
             self.gts = sorted(self.root.glob(f'{mode}/*_mask.png'))
 
@@ -128,7 +150,7 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         confighash = md5((
             self.tilesize,
             self.vertices,
-            self.channels,
+            self.data_source,
             self.subtiles))
         prefix = f'{self.data_source}_{mode}_{confighash}'
         self.tile_cache_path  = self.cachedir / f'{prefix}_tile.npy'
@@ -156,32 +178,69 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         self.mask_cache  = np.load(self.mask_cache_path,  mmap_mode='r')
         self.tile_cache  = np.load(self.tile_cache_path,  mmap_mode='r')
 
-    def generate_raw(self):
-        if self.data_source == 'TUD':
-            for gtpath in self.gts:
-                try:
-                    *_, loc, date, _ = gtpath.parts
-                    ref_root = self.root / 'reference_data' / loc / date / '30m'
-                    channels = []
-                    for channel_name in self.channels:
-                        channel = np.asarray(Image.open(ref_root / f'{channel_name}.tif'))
-                        channels.append(channel.astype(np.uint8))
-                    tile = np.stack(channels, axis=-1)
-                    # mask = np.asarray(Image.open(gtpath)) > 127
-                    mask = np.asarray(Image.open(gtpath)) > 0
-                    yield tile, mask
-                except FileNotFoundError:
-                    # Some of the data are not complete, so we skip them
-                    pass
-        elif self.data_source == 'CALFIN':
-            for gtpath in self.gts:
-                tilepath = str(gtpath).replace('_mask.png', '.png')
-                tile = np.asarray(Image.open(tilepath))[..., self.channels]
-                mask = np.asarray(Image.open(gtpath)) > 127
+    def generate_CALFIN(self):
+        for gtpath in self.gts:
+            tilepath = str(gtpath).replace('_mask.png', '.png')
+            tile = np.asarray(Image.open(tilepath))[..., self.channels]
+            mask = np.asarray(Image.open(gtpath)) > 127
+            yield tile, mask
+
+    def generate_TUD(self):
+        for gtpath in self.gts:
+            try:
+                *_, site, date, _ = gtpath.parts
+                ref_root = self.root / 'reference_data' / site / date / '30m'
+                channels = []
+                for channel_name in self.channels:
+                    channel = np.asarray(Image.open(ref_root / f'{channel_name}.tif'))
+                    channels.append(channel.astype(np.uint8))
+                tile = np.stack(channels, axis=-1)
+                # mask = np.asarray(Image.open(gtpath)) > 127
+                mask = np.asarray(Image.open(gtpath)) > 0
                 yield tile, mask
+            except FileNotFoundError:
+                # Some of the data are not complete, so we skip them
+                pass
+
+    def generate_TUD_MS(self):
+        if self.mode in ('train', 'validation'):
+            ref_root = self.root / 'TRAIN'
+        elif self.mode == 'test':
+            ref_root = self.root / 'TEST'
+
+        for gtpath in self.gts:
+            try:
+                *_, site, date, _ = gtpath.parts
+                img_ref_root = ref_root / site / date / '30m' / 'SPECTRAL' / 'BANDS'
+                channels = []
+                for channel_name in ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B10', 'B11']:
+                    channel = np.asarray(Image.open(img_ref_root / f'{channel_name}.tif'))
+                    # Scale by two sigma
+                    mu = channel.mean()
+                    sigma = channel.std()
+
+                    a = 1 / (4*sigma)
+                    b = 0.5 - mu * a
+
+                    channel = np.clip(a * channel + b, 0, 1)
+                    channel = (255 * channel).astype(np.uint8)
+                    channels.append(channel)
+                tile = np.stack(channels, axis=-1)
+                mask = np.asarray(Image.open(gtpath)) > 0
+                yield tile, mask
+            except FileNotFoundError:
+                print(f'FileNotFoundError for {gtpath}')
+                pass
 
     def generate_tiles(self):
-        prog  = tqdm(self.generate_raw(), total=len(self.gts))
+        if self.mode == 'CALFIN':
+            generator = self.generate_CALFIN()
+        elif self.mode == 'TUD':
+            generator = self.generate_TUD()
+        elif self.data_source == 'TUD-MS':
+            generator = self.generate_TUD_MS()
+
+        prog  = tqdm(generator, total=len(self.gts))
         count = 0
         zeros = 0
         taken = 0
@@ -244,14 +303,12 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
     config = {
-        'data_root': '../aicore/uc1/data/',
-        'data_channels': ['SPECTRAL/BANDS/NORM_B8_8b'],
-        # 'data_root': '../CALFIN/training/data',
-        # 'data_channels': [0],
+        'dataset': 'TUD-MS',
+        'data_root': '../aicore/uc1_new/',
         'vertices': 64,
         'tile_size': 256,
     }
-    ds = GlacierFrontDataset('validation', config, subtiles=False)
+    ds = GlacierFrontDataset('train', config, subtiles=False)
     print(len(ds))
     for x in ds[0]:
         print(x.shape, x.dtype)

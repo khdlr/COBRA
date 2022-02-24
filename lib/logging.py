@@ -28,13 +28,23 @@ def log_metrics(metrics, prefix, epoch, do_print=True, do_wandb=True):
         print(', '.join(f'{k}: {v:.3f}' for k, v in metrics.items()))
 
 
+def get_rgb(data):
+    img = data['imagery']
+    if img.shape[-1] == 1:
+        rgb = np.concatenate([img]*3, axis=-1)
+    elif img.shape[-1] == 10:
+        rgb = img[..., 3:0:-1]
+    rgb = np.clip(255 * rgb, 0, 255).astype(np.uint8)
+    return rgb
+
+
 def log_segmentation(data, tag, step):
     H, W, C = data['imagery'].shape
 
     fig, axs = plt.subplots(1, 3, figsize=(10, 3))
     for ax in axs:
         ax.axis('off')
-    axs[0].imshow(np.asarray(data['imagery']), cmap='gray')
+    axs[0].imshow(get_rgb(data))
     axs[1].imshow(np.asarray(data['seg'][:,:,0]), cmap='gray', vmin=-1, vmax=1)
     axs[2].imshow(np.asarray(data['mask']), cmap='gray', vmin=0, vmax=1)
 
@@ -50,7 +60,7 @@ def log_edge(data, tag, step):
     fig, axs = plt.subplots(1, 3, figsize=(10, 3))
     for ax in axs:
         ax.axis('off')
-    axs[0].imshow(np.asarray(data['imagery']), cmap='gray')
+    axs[0].imshow(get_rgb(data))
     axs[1].imshow(np.asarray(data['edge'][:,:,0]), cmap='binary', vmin=0, vmax=1)
     axs[2].imshow(np.asarray(true_edge), cmap='binary', vmin=0, vmax=1)
 
@@ -60,8 +70,7 @@ def log_edge(data, tag, step):
 
 
 def log_anim(data, tag, step):
-    img = np.clip(255 * data['imagery'], 0, 255).astype(np.uint8)
-    img = np.stack([img[..., 0]] * 3, axis=-1)
+    img = get_rgb(data)
     H, W, C = img.shape
     img = Image.fromarray(np.asarray(img))
     buffer = BytesIO()

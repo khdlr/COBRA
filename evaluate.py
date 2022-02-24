@@ -62,12 +62,14 @@ if __name__ == '__main__':
     do_output = True
 
     config = yaml.load(open(run / 'config.yml'), Loader=yaml.SafeLoader)
+    config['dataset'] = 'CALFIN'
     config['data_root'] = '../CALFIN/training/data'
     config['data_channels'] = [2]
 
     datasets = ['validation' , 'validation_baumhoer', 'validation_zhang']
     loaders  = {d: get_loader(4, 1, d, config, None, subtiles=False) for d in datasets}
 
+    config['dataset'] = 'TUD'
     config['data_root'] = '../aicore/uc1/data/'
     config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
     loaders['TUD_test'] = get_loader(4, 1, 'test', config, subtiles=False)

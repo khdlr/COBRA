@@ -9,14 +9,14 @@ model_args:
   stop_grad: true
   weight_sharing: true
   head: SnakeHead
-loss_function: stepwise(l1_loss)
+loss_function: stepwise(SoftDTW(0.001))
 
 # Data args
 batch_size: 16
-data_root: '../CALFIN/training/data'
-data_channels: [2]
-# data_root: '../aicore/uc1/data/'
-# data_channels:
-#   - 'SPECTRAL/BANDS/STD_2s_B8_8b'
+# dataset:  CALFIN
+# data_root: '../CALFIN/training/data'
+# data_channels: [2]
+dataset: TUD-MS
+data_root: '../aicore/uc1_new/'
 tile_size: 256
 vertices: 64
