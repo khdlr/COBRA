@@ -130,8 +130,9 @@ def fmt(xs, extra=None):
 
 
 def assert_git_clean():
-    diff = check_output(['git', 'diff', 'HEAD'])
-    assert not diff, "Won't run on a dirty git state!"
+    diff = check_output(["git", "diff", "--name-only", "HEAD"]).decode("utf-8").splitlines()
+    if diff and diff != ['config.yml']:
+      assert False, "Won't run on a dirty git state!"
 
 
 def snakify(mask, vertices):
