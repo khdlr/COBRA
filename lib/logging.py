@@ -68,7 +68,6 @@ def log_edge(data, tag, step):
     plt.close(fig)
 
 
-
 def log_anim(data, tag, step):
     img = get_rgb(data)
     H, W, C = img.shape
@@ -137,7 +136,7 @@ def log_offset_field(data, tag, step):
 
   fig, ax = plt.subplots(figsize=(7, 7))
   ax.axis('off')
-  ax.imshow(img, cmap='gray')
+  ax.imshow(get_rgb(data))
 
   H, W, C = img.shape
 

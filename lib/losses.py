@@ -39,6 +39,14 @@ def stepwise(loss_fn):
   return inner
 
 
+def stepwise_softdtw_and_aux(terms):
+  loss_terms = stepwise(SoftDTW(0.001))(terms)
+  loss_terms['segmentation_loss'] = bce(terms)
+  loss_terms['offset_loss'] = offset_field_loss(terms)
+
+  return loss_terms
+
+
 def l2_loss(terms):
   snake   = terms['snake']
   contour = terms['contour']
@@ -89,6 +97,9 @@ def bce(terms):
   mask = terms['mask']
   if len(seg.shape) == 3 and seg.shape[-1] == 1:
     seg = seg[..., 0]
+
+  seg = jax.image.resize(seg, mask.shape, 'bilinear')
+
   assert seg.shape == mask.shape, f"{seg.shape} != {mask.shape}"
   return _bce(seg, mask)
 
