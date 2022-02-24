@@ -45,7 +45,7 @@ def log_segmentation(data, tag, step):
     for ax in axs:
         ax.axis('off')
     axs[0].imshow(get_rgb(data))
-    axs[1].imshow(np.asarray(data['seg'][:,:,0]), cmap='gray', vmin=-1, vmax=1)
+    axs[1].imshow(np.asarray(data['segmentation'][:,:,0]), cmap='gray', vmin=-1, vmax=1)
     axs[2].imshow(np.asarray(data['mask']), cmap='gray', vmin=0, vmax=1)
 
     wandb.log({tag: wandb.Image(fig)}, step=step)

@@ -62,7 +62,7 @@ class MarcosDSAC():
     self.vertices = vertices
 
   def __call__(self, imagery, is_training=False):
-    features = UNet(32, out_channels=3)(imagery, is_training)['seg']
+    features = UNet(32, out_channels=3)(imagery, is_training)['segmentation']
 
     D, alpha, beta = jnp.split(features, 3, axis=-1)
     F_y = jnp.gradient(D, axis=1)

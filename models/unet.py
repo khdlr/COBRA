@@ -32,7 +32,7 @@ class UNet:
             x = Convx2(jnp.concatenate([x, skip], axis=-1), channels, is_training)
 
         x = hk.Conv2D(self.out_channels, 1, with_bias=False, w_init=jnp.zeros)(x)
-        return {'seg': x}
+        return {'segmentation': x}
 
 
 def BatchNorm():

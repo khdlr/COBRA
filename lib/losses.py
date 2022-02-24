@@ -87,7 +87,7 @@ def offset_field_loss(terms):
 def bce(terms):
   seg  = terms['segmentation']
   mask = terms['mask']
-  assert seg.shape == mask.shape
+  assert seg.shape == mask.shape, f"{seg.shape} != {mask.shape}"
   return _bce(seg, mask)
 
 

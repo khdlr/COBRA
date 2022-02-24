@@ -45,7 +45,7 @@ class HEDUNet:
 
         seg, edge = jnp.split(final_pred, 2, axis=-1)
 
-        return {'seg': seg, 'edge': edge, 'HED-UNet-Stack': all_preds}
+        return {'segmentation': seg, 'edge': edge, 'HED-UNet-Stack': all_preds}
 
 
 def BatchNorm():

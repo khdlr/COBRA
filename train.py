@@ -64,7 +64,7 @@ def train_step(batch, state, key, net):
     }
 
     if 'snake' not in terms:
-      terms['snake'] = utils.snakify(terms['seg'][:1], contour.shape[-2])
+      terms['snake'] = utils.snakify(terms['segmentation'][:1], contour.shape[-2])
       terms['contour'] = terms['contour'][:1]
     if 'snake_steps' not in terms:
       terms['snake_steps'] = [terms['snake']]
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
             out = jax.tree_map(lambda x: x[0], out) # Select first example from batch
             logging.log_anim(out, f"Animated/{step}", epoch)
-            if 'seg' in out:
+            if 'segmentation' in out:
                 logging.log_segmentation(out, f'Segmentation/{step}', epoch)
             if 'offsets' in out:
                 logging.log_offset_field(out, f'Offsets/{step}', epoch)

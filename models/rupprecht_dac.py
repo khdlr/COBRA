@@ -70,7 +70,7 @@ class RupprechtUNetDAC():
     self.sobolev = sobolev
 
   def __call__(self, imagery, is_training=False):
-    flow = UNet(32, out_channels=2)(imagery, is_training)['seg']
+    flow = UNet(32, out_channels=2)(imagery, is_training)['segmentation']
 
     init_keys = jax.random.split(hk.next_rng_key(), imagery.shape[0])
     make_bezier = jax.vmap(partial(snake_utils.random_bezier, vertices=self.vertices))

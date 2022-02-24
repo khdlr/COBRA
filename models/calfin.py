@@ -25,4 +25,4 @@ class CFM:
 
     seg, edge = jnp.split(x, 2, axis=-1)
 
-    return {'seg': seg, 'edge': edge}
+    return {'segmentation': seg, 'edge': edge}
