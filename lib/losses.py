@@ -1,12 +1,12 @@
 import jax
 import jax.numpy as jnp
 from jax.scipy.special import logsumexp
+from jax.experimental.host_callback import id_print
 import haiku as hk
 import optax
 
-from jax.experimental.host_callback import id_print
-
 from abc import ABC, abstractmethod
+from inspect import signature
 
 from .utils import pad_inf, fmt, distance_matrix, min_pool, draw_poly
 from .jump_flood import jump_flood
@@ -14,15 +14,19 @@ from einops import rearrange
 
 
 def call_loss(loss_fn, terms):
-    loss_terms = jax.vmap(loss_fn)(terms)
-    loss_terms = jax.tree_map(jnp.mean, loss_terms)
-    if isinstance(loss_terms, dict):
-      total_loss = sum(loss_terms.values())
-    else:
-      total_loss = loss_terms
-      loss_terms = {}
-    loss_terms['loss'] = total_loss
-    return total_loss, loss_terms
+  # TODO: Inspection
+  sig = signature(loss_fn)
+  args = {k: v for k, v in terms.items() if k in sig.parameters}
+
+  loss_terms = jax.vmap(loss_fn)(**args)
+  loss_terms = jax.tree_map(jnp.mean, loss_terms)
+  if isinstance(loss_terms, dict):
+    total_loss = sum(loss_terms.values())
+  else:
+    total_loss = loss_terms
+    loss_terms = {}
+  loss_terms['loss'] = total_loss
+  return total_loss, loss_terms
 
 
 def stepwise(loss_fn):
@@ -30,11 +34,11 @@ def stepwise(loss_fn):
   and calls the wrapped loss_fn on it.
   Returns the mean loss accumulated in the process.
   """
-  def inner(terms):
+  def inner(snake_steps, contour):
     losses = {}
-    for step in range(len(terms['snake_steps'])):
-      step_terms = {**terms, 'snake': terms['snake_steps'][step]}
-      losses[f'loss_{step}'] = loss_fn(step_terms)
+    for step in range(len(snake_steps)):
+      step_terms = {'snake': snake_steps[step], 'contour': contour}
+      losses[f'loss_{step}'] = loss_fn(**step_terms)
     return losses
   return inner
 
@@ -47,31 +51,23 @@ def stepwise_softdtw_and_aux(terms):
   return loss_terms
 
 
-def l2_loss(terms):
-  snake   = terms['snake']
-  contour = terms['contour']
+def l2_loss(snake, contour):
   loss = jnp.sum(jnp.square(snake - contour), axis=-1)
   loss = jnp.mean(loss)
   return loss
 
 
-def l1_loss(terms):
-  snake   = terms['snake']
-  contour = terms['contour']
+def l1_loss(snake, contour):
   loss = jnp.sum(jnp.abs(snake - contour), axis=-1)
   return loss
 
 
-def huber_loss(terms):
-  snake   = terms['snake']
-  contour = terms['contour']
+def huber_loss(snake, contour):
   loss = optax.huber_loss(snake, contour, delta=0.05)
   return loss
 
 
-def min_min_loss(terms):
-  snake   = terms['snake']
-  contour = terms['contour']
+def min_min_loss(snake, contour):
   D = distance_matrix(snake, contour)
   min1 = D.min(axis=0)
   min2 = D.min(axis=1)
@@ -79,9 +75,7 @@ def min_min_loss(terms):
   return min_min
 
 
-def offset_field_loss(terms):
-  mask = terms['mask']
-  offsets = terms['offsets']
+def offset_field_loss(offsets, mask):
   H, W = mask.shape
   true_offsets = jump_flood(mask)
   true_offsets = (true_offsets * (2/H))
@@ -92,9 +86,8 @@ def offset_field_loss(terms):
   return jnp.mean(error)
 
 
-def bce(terms):
-  seg  = terms['segmentation']
-  mask = terms['mask']
+def bce(segmentation, mask):
+  seg  = segmentation
   if len(seg.shape) == 3 and seg.shape[-1] == 1:
     seg = seg[..., 0]
 
@@ -104,10 +97,8 @@ def bce(terms):
   return _bce(seg, mask)
 
 
-def calfin_loss(terms):
-  seg  = terms['segmentation']
-  edge = terms['edge']
-  mask = terms['mask']
+def calfin_loss(segmentation, edge, mask):
+  seg  = segmentation
 
   true_edge = hk.max_pool(mask, [5, 5], [1, 1], "SAME") != min_pool(mask, [5, 5], [1, 1], "SAME")
 
@@ -119,9 +110,8 @@ def calfin_loss(terms):
   return (1/26) * seg_loss + (25/26) * edge_loss
 
 
-def hed_unet_loss(terms):
-  mask = terms['mask']
-  prediction = terms['HED-UNet-Stack']
+def hed_unet_loss(hed_unet_stack, mask):
+  prediction = hed_unet_stack
 
   edge = hk.max_pool(mask, [3, 3], [1, 1], "SAME") != min_pool(mask, [3, 3], [1, 1], "SAME")
   target = rearrange(jnp.stack([mask, edge], axis=-1), 'H W C -> H W 1 C', C=2)
@@ -138,9 +128,7 @@ class AbstractDTW(ABC):
   def minimum(self, *args):
     pass
 
-  def __call__(self, terms):
-    snake   = terms['snake']
-    contour = terms['contour']
+  def __call__(self, snake, contour):
     return self.dtw(snake, contour)
 
   def dtw(self, snake, contour):
@@ -240,14 +228,10 @@ class SoftDTW(AbstractDTW):
     return self.minimum_impl(args)
 
 
-def marcos_dsac_loss(terms):
-  mask    = terms['mask']
-  snake   = jax.lax.stop_gradient(terms['snake'])
-  contour = terms['contour']
-
-  mapE = terms['mapE'][..., 0]
-  mapA = terms['mapA']
-  mapB = terms['mapB'][..., 0]
+def marcos_dsac_loss(snake,  mapE, mapA, mapB, mask, contour):
+  mapE = mapE[..., 0]
+  mapA = mapA
+  mapB = mapB[..., 0]
   # kappa is left out
 
   H, W = mask.shape
@@ -274,11 +258,8 @@ def marcos_dsac_loss(terms):
   return jnp.sum(lossE) + jnp.sum(lossB) + jnp.sum(lossA)
 
 
-def dance_loss(terms):
-  edge = terms['edge'][..., 0]
-  mask = terms['mask']
-  snake_steps = terms['snake_steps']
-  contour = terms['contour']
+def dance_loss(snake_steps, edge, mask):
+  edge = edge[..., 0]
 
   loss_terms = {}
 

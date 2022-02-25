@@ -12,7 +12,6 @@ from typing import Union, Sequence, Optional, Tuple
 from subprocess import check_output
 from typing import NamedTuple
 import pickle
-from inspect import signature
 from .metrics import squared_distance_points_to_curve
 
 
@@ -74,28 +73,6 @@ def prep(batch, key=None, augment=False, input_types=None):
             outputs[i] = 2 * (outputs[i] / outputs[0].shape[1]) - 1.0
 
     return outputs
-
-
-def call_loss(loss_fn, prediction, mask, snake, key='loss', take_mean=True):
-    sig = signature(loss_fn)
-    args = {'prediction': prediction}
-    if 'snake' in sig.parameters:
-        args['snake'] = snake
-    if 'mask' in sig.parameters:
-        args['mask'] = mask
-
-    loss_terms = {}
-    if isinstance(prediction, list):
-        for i, pred in enumerate(prediction, 1):
-            args['prediction'] = pred
-            loss_terms[f'{key}_{i}'] = jax.vmap(loss_fn)(**args)
-    else:
-        loss_terms[key] = jax.vmap(loss_fn)(**args)
-
-    if take_mean:
-        loss_terms = jax.tree_map(jnp.mean, loss_terms)
-
-    return loss_terms
 
 
 def distance_matrix(a, b):
