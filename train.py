@@ -75,7 +75,7 @@ def train_step(batch, state, key, net):
       terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
 
     for m in METRICS:
-        metrics[m] = jnp.mean(call_loss(METRICS[m], terms))
+        metrics[m] = jnp.mean(losses.call_loss(METRICS[m], terms)[0])
 
     return metrics, terms, changed_state(state,
         params=new_params,
