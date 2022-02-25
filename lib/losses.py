@@ -144,12 +144,12 @@ def stepwise_softdtw_and_aux(snake_steps, segmentation, offsets, mask, contour):
 
 
 def calfin_loss(segmentation, edge, mask):
-  seg  = segmentation
-
+  segmentation = segmentation[..., 0]
+  edge = edge[..., 0]
   true_edge = hk.max_pool(mask, [5, 5], [1, 1], "SAME") != min_pool(mask, [5, 5], [1, 1], "SAME")
 
-  seg_loss  = jnp.mean(_bce(seg, mask)) + \
-              jnp.mean(_iou_loss(seg, mask))
+  seg_loss  = jnp.mean(_bce(segmentation, mask)) + \
+              jnp.mean(_iou_loss(segmentation, mask))
   edge_loss = jnp.mean(_bce(edge, true_edge)) + \
               jnp.mean(_iou_loss(edge, true_edge))
 
@@ -322,7 +322,7 @@ def _balanced_bce(prediction, mask):
 def _iou_loss(prediction, mask):
     """corresponds to -log(iou_score) in the CALFIN code"""
     eps = 1e-1
-    prediction = jax.nn.sigmoid(prediction[..., 0])
+    prediction = jax.nn.sigmoid(prediction)
 
     intersection = jnp.sum(prediction * mask, axis=[0, 1])
     union        = jnp.sum(jnp.maximum(prediction, mask), axis=[0, 1])
