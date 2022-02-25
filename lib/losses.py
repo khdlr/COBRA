@@ -105,29 +105,21 @@ def rmse(snake, contour):
 
 
 def forward_mae(snake, contour):
-  snake   = terms['snake']
-  contour = terms['contour']
   squared_dist = squared_distance_points_to_curve(snake, contour)
   return jnp.mean(jnp.sqrt(squared_dist))
 
 
 def backward_mae(snake, contour):
-  snake   = terms['snake']
-  contour = terms['contour']
   squared_dist = squared_distance_points_to_curve(contour, snake)
   return jnp.mean(jnp.sqrt(squared_dist))
 
 
 def forward_rmse(snake, contour):
-  snake   = terms['snake']
-  contour = terms['contour']
   squared_dist = squared_distance_points_to_curve(snake, contour)
   return jnp.sqrt(jnp.mean(squared_dist))
 
 
 def backward_rmse(snake, contour):
-  snake   = terms['snake']
-  contour = terms['contour']
   squared_dist = squared_distance_points_to_curve(contour, snake)
   return jnp.sqrt(jnp.mean(squared_dist))
 
