@@ -12,7 +12,6 @@ from typing import Union, Sequence, Optional, Tuple
 from subprocess import check_output
 from typing import NamedTuple
 import pickle
-from .losses import squared_distance_points_to_curve
 
 
 class TrainingState(NamedTuple):
@@ -189,40 +188,3 @@ def min_pool(
 
 def fnot(fun):
     return lambda x: not fun(x)
-
-
-def fill_point(point, polyline, brush_size, values=None):
-  def d_pt2segment(a, b):
-    b_a = b - a
-    p_a = point - a
-
-    t = jnp.dot(b_a, p_a) / jnp.dot(b_a, b_a)
-    t = jnp.nan_to_num(jnp.clip(t, 0, 1), nan=0.0, posinf=0.0, neginf=0.0)
-    
-    dist2 = jnp.sum(jnp.square((1-t)*a + t*b - point))
-    
-    return dist2
-
-  startpoints = polyline[:-1]
-  endpoints   = polyline[1:]
-  squared_distances = jax.vmap(d_pt2segment)(startpoints, endpoints)
-
-  if values is None:
-    min_dist = jnp.min(squared_distances)
-    return jnp.where(min_dist <= brush_size, 1, 0)
-  else:
-    best_segment = jnp.argmin(squared_distances)
-    min_dist = squared_distances[best_segment]
-    return jnp.where(min_dist < brush_size,
-        0.5 * (values[best_segment] + values[best_segment+1]),
-        0.0
-    )
-
-
-def draw_poly(snake, img_size, brush_size, values=None):
-  H, W = img_size
-  x, y = jnp.meshgrid(jnp.linspace(-1, 1, W), jnp.linspace(-1, 1, H))
-  points = jnp.stack([y, x], axis=-1)
-  draw_fn = partial(fill_point, polyline=snake, brush_size=brush_size, values=values)
-  return jax.vmap(jax.vmap(draw_fn))(points)
-
