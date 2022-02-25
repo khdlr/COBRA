@@ -17,7 +17,7 @@ import sys
 import augmax
 
 import models
-from lib import utils, losses, metrics, logging
+from lib import utils, losses, logging
 from lib.utils import TrainingState, prep, changed_state, save_state
 from evaluate import test_step, METRICS
 
@@ -75,7 +75,7 @@ def train_step(batch, state, key, net):
       terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
 
     for m in METRICS:
-        metrics[m] = jnp.mean(jax.vmap(METRICS[m])(terms))
+        metrics[m] = jnp.mean(call_loss(METRICS[m], terms))
 
     return metrics, terms, changed_state(state,
         params=new_params,

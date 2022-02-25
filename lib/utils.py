@@ -12,7 +12,7 @@ from typing import Union, Sequence, Optional, Tuple
 from subprocess import check_output
 from typing import NamedTuple
 import pickle
-from .metrics import squared_distance_points_to_curve
+from .losses import squared_distance_points_to_curve
 
 
 class TrainingState(NamedTuple):

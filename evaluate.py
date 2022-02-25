@@ -10,19 +10,19 @@ from tqdm import tqdm
 
 import models
 from data_loading import get_loader
-from lib import metrics, utils, logging
+from lib import losses, utils, logging
 from lib.utils import TrainingState, prep, load_state
 
 
 METRICS = dict(
-    mae            = metrics.mae,
-    rmse           = metrics.rmse,
-    forward_mae    = metrics.forward_mae,
-    backward_mae   = metrics.backward_mae,
-    forward_rmse   = metrics.forward_rmse,
-    backward_rmse  = metrics.backward_rmse,
-    symmetric_mae  = metrics.symmetric_mae,
-    symmetric_rmse = metrics.symmetric_rmse,
+    mae            = losses.mae,
+    rmse           = losses.rmse,
+    forward_mae    = losses.forward_mae,
+    backward_mae   = losses.backward_mae,
+    forward_rmse   = losses.forward_rmse,
+    backward_rmse  = losses.backward_rmse,
+    symmetric_mae  = losses.symmetric_mae,
+    symmetric_rmse = losses.symmetric_rmse,
 )
 
 
@@ -51,7 +51,7 @@ def test_step(batch, state, key, net):
 
     metrics = {}
     for m in METRICS:
-        metrics[m] = jax.vmap(METRICS[m])(terms)
+        metrics[m] = call_loss(METRICS[m], terms)
 
     return metrics, terms
 
