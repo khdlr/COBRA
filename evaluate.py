@@ -1,5 +1,6 @@
 import sys
 import yaml
+import json
 from functools import partial
 from pathlib import Path
 import jax
@@ -62,21 +63,25 @@ if __name__ == '__main__':
     do_output = True
 
     config = yaml.load(open(run / 'config.yml'), Loader=yaml.SafeLoader)
-    config['dataset'] = 'CALFIN'
-    config['data_root'] = '../CALFIN/training/data'
-    config['data_channels'] = [2]
+    if config['dataset'] == 'TUD-MS':
+      # datasets = ['TEST' , '', 'validation_zhang']
+      loaders  = {'TUD-MS': get_loader(4, 1, 'test', config, None, subtiles=False)}
+    else:
+      config['dataset'] = 'CALFIN'
+      config['data_root'] = '../CALFIN/training/data'
+      config['data_channels'] = [2]
 
-    datasets = ['validation' , 'validation_baumhoer', 'validation_zhang']
-    loaders  = {d: get_loader(4, 1, d, config, None, subtiles=False) for d in datasets}
+      datasets = ['validation' , 'validation_baumhoer', 'validation_zhang']
+      loaders  = {d: get_loader(4, 1, d, config, None, subtiles=False) for d in datasets}
 
-    config['dataset'] = 'TUD'
-    config['data_root'] = '../aicore/uc1/data/'
-    config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
-    loaders['TUD_test'] = get_loader(4, 1, 'test', config, subtiles=False)
+      config['dataset'] = 'TUD'
+      config['data_root'] = '../aicore/uc1/data/'
+      config['data_channels'] = ['SPECTRAL/BANDS/STD_2s_B8_8b']
+      loaders['TUD_test'] = get_loader(4, 1, 'test', config, subtiles=False)
 
-    for sample_batch in loaders[datasets[0]]:
-        break
-    img, *_ = prep(sample_batch)
+    for sample_batch in list(loaders.values())[0]:
+      img, *_ = prep(sample_batch)
+      break
 
     S, params, buffers = models.get_model(config, img)
     state = utils.load_state(run / 'latest.pkl')
@@ -100,15 +105,3 @@ if __name__ == '__main__':
 
     with (run / 'metrics.json').open('w') as f:
         print(all_metrics, file=f)
-
-        # print(f'{"Metric".ljust(15)}:    mean   median      min        max')
-        # for m, val in metrics.items():
-        #     print(f'{m.ljust(15)}: {val.mean():7.4f}  {jnp.median(val):7.4f}  '
-        #           f'{jnp.min(val):7.4f} – {jnp.max(val):8.4f}')
-        # print()
-        # if do_output:
-        #     with open('results.csv', 'a') as f:
-        #         for m, val in metrics.items():
-        #             print(f'{run.stem},{config["run_id"]},{dataset},{m},'
-        #                   f'{val.mean()},{jnp.median(val)},{jnp.mean(val)},{jnp.min(val)},{jnp.max(val)}',
-        #                     file=f)

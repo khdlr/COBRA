@@ -123,6 +123,10 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
                 ref_root = self.root / 'TRAIN'
             elif mode == 'test':
                 ref_root = self.root / 'TEST'
+            elif mode == 'test_esa':
+                ref_root = self.root / 'TEST_ESA-CCI'
+            elif mode == 'test_calfin':
+                ref_root = self.root / 'TEST_CALFIN'
             else:
                 raise ValueError(f'Cannot provide data for dataset mode {mode}')
 
@@ -308,7 +312,7 @@ if __name__ == '__main__':
         'vertices': 64,
         'tile_size': 256,
     }
-    ds = GlacierFrontDataset('train', config, subtiles=False)
+    ds = GlacierFrontDataset('test_esa', config, subtiles=False)
     print(len(ds))
     for x in ds[0]:
         print(x.shape, x.dtype)
