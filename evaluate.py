@@ -40,7 +40,7 @@ def test_step(batch, state, key, net):
     }
 
     if 'snake' not in terms:
-      terms['snake'] = utils.snakify(preds, contour.shape[-2])
+      terms['snake'] = utils.snakify(terms['segmentation'], contour.shape[-2])
     if 'snake_steps' not in terms:
       terms['snake_steps'] = [terms['snake']]
 
@@ -51,7 +51,7 @@ def test_step(batch, state, key, net):
 
     metrics = {}
     for m in METRICS:
-        metrics[m] = call_loss(METRICS[m], terms)
+        metrics[m] = losses.call_loss(METRICS[m], terms)[0]
 
     return metrics, terms
 
