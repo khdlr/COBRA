@@ -11,9 +11,52 @@ from tqdm import tqdm
 from PIL import Image
 
 import models
+import haiku as hk
 from data_loading import get_loader
 from lib import losses, utils, logging
 from lib.utils import TrainingState, prep, load_state
+from models.nnutils import channel_dropout
+
+
+# Monkey-Patch Haiku Convs to get MC dropout
+class Conv2D(hk.ConvND):
+  def __init__(
+      self,
+      output_channels,
+      kernel_shape,
+      stride=1,
+      rate=1,
+      padding='SAME',
+      with_bias: bool = True,
+      w_init=None,
+      b_init=None,
+      data_format: str = "NHWC",
+      mask=None,
+      feature_group_count: int = 1,
+      name=None,
+  ):
+    super().__init__(
+        num_spatial_dims=2,
+        output_channels=output_channels,
+        kernel_shape=kernel_shape,
+        stride=stride,
+        rate=rate,
+        padding=padding,
+        with_bias=with_bias,
+        w_init=w_init,
+        b_init=b_init,
+        data_format=data_format,
+        mask=mask,
+        feature_group_count=feature_group_count,
+        name=name)
+
+  def __call__(self, inputs: jnp.ndarray, *,
+      precision=None,):
+    x = super().__call__(inputs, precision=precision)
+    x = channel_dropout(x, rate=0.05)
+    return x
+
+hk.Conv2D = Conv2D
 
 
 METRICS = dict(
@@ -88,7 +131,7 @@ if __name__ == '__main__':
     state = utils.load_state(run / 'latest.pkl')
     net = S.apply
 
-    img_root = run / 'imgs'
+    img_root = run / 'imgs_mcd'
     img_root.mkdir(exist_ok=True)
 
     all_metrics = {}
@@ -100,27 +143,29 @@ if __name__ == '__main__':
         img_dir.mkdir(exist_ok=True)
         dsidx = 0
         for batch in tqdm(loader, desc=dataset):
-            test_key, subkey = jax.random.split(test_key)
-            metrics, output = test_step(batch, state, subkey, net)
+            test_key, *subkeys = jax.random.split(test_key, 6)
+
+            outputs = []
+            for k in subkeys:
+              metrics, output = test_step(batch, state, k, net)
+              outputs.append(output)
 
             for m in metrics:
               if m not in test_metrics: test_metrics[m] = []
               test_metrics[m].append(metrics[m])
 
             for i in range(len(output['imagery'])):
-              o = jax.tree_map(lambda x: x[i], output)
+              os = jax.tree_map(lambda x: x[i], outputs)
+              o = os[0]
               raw = Image.fromarray((255 * np.asarray(o['imagery'][..., 0])).astype(np.uint8))
-              raw_path = Path(f'base_imgs/{dataset}/{dsidx:03d}.jpg')
-              raw_path.parent.mkdir(exist_ok=True, parents=True)
-              raw.save(f'base_imgs/{dataset}/{dsidx:03d}.jpg')
               base = 0.5 * (o['imagery'] + 1.0)
-              logging.draw_image(base, o['contour'], o['snake'], img_dir / f'{dsidx:03d}.pdf')
-              logging.draw_steps(base, o['contour'], o['snake_steps'], img_dir / f'{dsidx:03d}_steps.pdf')
+              logging.draw_multi(base, o['contour'],
+                  [o['snake'] for o in os], img_dir / f'{dsidx:03d}.pdf')
               dsidx += 1
 
         logging.log_metrics(test_metrics, dataset, 0, do_wandb=False)
         for m in test_metrics:
             all_metrics[f'{dataset}/{m}'] = np.mean(test_metrics[m])
 
-    with (run / 'new_metrics.json').open('w') as f:
+    with (run / 'uncertainty_metrics.json').open('w') as f:
         print(all_metrics, file=f)

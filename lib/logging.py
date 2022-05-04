@@ -102,15 +102,6 @@ def log_anim(data, tag, step):
     wandb.log({tag: wandb.Html(html, inject=False)}, step=step)
 
 
-def draw_snake(draw, snake, dashed=False, **kwargs):
-    if dashed:
-        for (y0, x0, y1, x1) in snake.reshape((-1, 4)):
-            draw.line((x0, y0, x1, y1), **kwargs)
-    else:
-        for (y0, x0), (y1, x1) in zip(snake, snake[1:]):
-            draw.line((x0, y0, x1, y1), **kwargs)
-
-
 def make_path_string(vertices):
     return 'M' + ' L'.join(f'{x:.2f},{y:.2f}' for y, x in vertices)
 
@@ -161,3 +152,88 @@ def log_offset_field(data, tag, step):
   
   wandb.log({tag: wandb.Image(fig)}, step=step)
   plt.close(fig)
+
+
+def draw_snake(draw, snake, dashed=False, **kwargs):
+    if dashed:
+        for (y0, x0, y1, x1) in snake.reshape((-1, 4)):
+            draw.line((x0, y0, x1, y1), **kwargs)
+    else:
+        for (y0, x0), (y1, x1) in zip(snake, snake[1:]):
+            draw.line((x0, y0, x1, y1), **kwargs)
+
+
+def draw_image(img, contour, snake, out_path):
+    H, W, C = img.shape
+    assert H == 256 and W == 256
+
+    # img = np.asarray(jax.image.resize(img, (256, 256, C), method='linear'))
+    img = np.asarray(img)
+    img = (255 * img).astype(np.uint8)
+    img = np.concatenate([img]*3, axis=-1)
+
+    fig, ax = plt.subplots(figsize=(3, 3))
+    ax.axis('off')
+    ax.imshow(img)
+    _plot(ax, contour, c='r', linewidth=3)
+    _plot(ax, snake, c='b', linewidth=3)
+
+    ax.set_xlim([-.5, 255.5])
+    ax.set_ylim([255.5, -.5])
+    fig.savefig(out_path, bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
+
+
+def draw_steps(img, contour, steps, out_path):
+    H, W, C = img.shape
+    assert H == 256 and W == 256
+
+    # img = np.asarray(jax.image.resize(img, (256, 256, C), method='linear'))
+    img = np.asarray(img)
+    img = (255 * img).astype(np.uint8)
+    img = np.concatenate([img]*3, axis=-1)
+
+    fig, ax = plt.subplots(figsize=(3, 3))
+    ax.axis('off')
+    ax.imshow(img)
+    _plot(ax, contour, c='r', linewidth=3)
+
+    for i, step in enumerate(steps):
+      if i == 0 and len(steps) > 1:
+        continue
+      if i+1 == len(steps):
+        _plot(ax, step, c='b', linewidth=3)
+      else:
+        _plot(ax, step, c='b', linestyle='dashed', linewidth=1)
+
+    ax.set_xlim([-.5, 255.5])
+    ax.set_ylim([255.5, -.5])
+    fig.savefig(out_path, bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
+
+
+def draw_multi(img, contour, snakes, out_path):
+    H, W, C = img.shape
+    assert H == 256 and W == 256
+
+    # img = np.asarray(jax.image.resize(img, (256, 256, C), method='linear'))
+    img = np.asarray(img)
+    img = (255 * img).astype(np.uint8)
+    img = np.concatenate([img]*3, axis=-1)
+
+    fig, ax = plt.subplots(figsize=(3, 3))
+    ax.axis('off')
+    ax.imshow(img)
+    _plot(ax, contour, c='r', linewidth=3)
+
+    for snake in snakes:
+      _plot(ax, snake, c='b', linewidth=1)
+
+    ax.set_xlim([-.5, 255.5])
+    ax.set_ylim([255.5, -.5])
+    fig.savefig(out_path, bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
+
+
+def _plot(ax, vertices, **kwargs):
+    ax.plot(*vertices.T[::-1], **kwargs)
