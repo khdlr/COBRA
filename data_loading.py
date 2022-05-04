@@ -96,7 +96,6 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         self.mode = mode
         self.subtiles = subtiles
 
-        # self.channels = config['data_channels']
         self.tilesize = config['tile_size']
         self.vertices = config['vertices']
         self.root = Path(config['data_root'])
@@ -154,7 +153,7 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         confighash = md5((
             self.tilesize,
             self.vertices,
-            self.data_source,
+            # self.data_source,
             self.subtiles))
         prefix = f'{self.data_source}_{mode}_{confighash}'
         self.tile_cache_path  = self.cachedir / f'{prefix}_tile.npy'
@@ -185,7 +184,7 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
     def generate_CALFIN(self):
         for gtpath in self.gts:
             tilepath = str(gtpath).replace('_mask.png', '.png')
-            tile = np.asarray(Image.open(tilepath))[..., self.channels]
+            tile = np.asarray(Image.open(tilepath))[..., 1:2]
             mask = np.asarray(Image.open(gtpath)) > 127
             yield tile, mask
 
@@ -237,9 +236,9 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
                 pass
 
     def generate_tiles(self):
-        if self.mode == 'CALFIN':
+        if self.data_source == 'CALFIN':
             generator = self.generate_CALFIN()
-        elif self.mode == 'TUD':
+        elif self.data_source == 'TUD':
             generator = self.generate_TUD()
         elif self.data_source == 'TUD-MS':
             generator = self.generate_TUD_MS()

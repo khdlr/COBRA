@@ -11,10 +11,53 @@ from tqdm import tqdm
 from PIL import Image
 
 import models
+import haiku as hk
 from data_loading import get_loader
 from lib import losses, utils, logging
 from lib.utils import TrainingState, prep, load_state
+from models.nnutils import channel_dropout
 
+
+MONKEY_PATCHED = True
+# Monkey-Patch Haiku Convs to get MC dropout
+class MCDConv2D(hk.ConvND):
+  def __init__(
+      self,
+      output_channels,
+      kernel_shape,
+      stride=1,
+      rate=1,
+      padding='SAME',
+      with_bias: bool = True,
+      w_init=None,
+      b_init=None,
+      data_format: str = "NHWC",
+      mask=None,
+      feature_group_count: int = 1,
+      name=None,
+  ):
+    super().__init__(
+        num_spatial_dims=2,
+        output_channels=output_channels,
+        kernel_shape=kernel_shape,
+        stride=stride,
+        rate=rate,
+        padding=padding,
+        with_bias=with_bias,
+        w_init=w_init,
+        b_init=b_init,
+        data_format=data_format,
+        mask=mask,
+        feature_group_count=feature_group_count,
+        name=name)
+
+  def __call__(self, inputs: jnp.ndarray, *,
+      precision=None,):
+    x = super().__call__(inputs, precision=precision)
+    if MONKEY_PATCHED:
+      print("Dropping Out")
+      x = channel_dropout(x, rate=0.5)
+    return x
 
 METRICS = dict(
     mae            = losses.mae,
@@ -84,14 +127,21 @@ if __name__ == '__main__':
       img, *_ = prep(sample_batch)
       break
 
+    hk.Conv2D = Conv2D
     S, params, buffers = models.get_model(config, img)
     state = utils.load_state(run / 'latest.pkl')
     net = S.apply
 
-    img_root = run / 'imgs'
+    S_mc, params, buffers = models.get_model(config, img)
+    net_mc = S_mc.apply
+
+    img_root = run / 'imgs_mcd'
     img_root.mkdir(exist_ok=True)
 
     all_metrics = {}
+
+    output_acc = []
+    samples_acc = []
     for dataset, loader in loaders.items():
         test_key = jax.random.PRNGKey(27)
         test_metrics = {}
@@ -100,27 +150,47 @@ if __name__ == '__main__':
         img_dir.mkdir(exist_ok=True)
         dsidx = 0
         for batch in tqdm(loader, desc=dataset):
-            test_key, subkey = jax.random.split(test_key)
-            metrics, output = test_step(batch, state, subkey, net)
+            test_key, *subkeys = jax.random.split(test_key, 11)
+
+            MONKEY_PATCHED = False
+            metrics, output = test_step(batch, state, test_key, net)
+            all_samples = []
+            MONKEY_PATCHED = True
+            for k in subkeys:
+              _, out = test_step(batch, state, k, net_mc)
+              all_samples.append(out['snake'])
 
             for m in metrics:
               if m not in test_metrics: test_metrics[m] = []
               test_metrics[m].append(metrics[m])
 
-            for i in range(len(output['imagery'])):
-              o = jax.tree_map(lambda x: x[i], output)
-              raw = Image.fromarray((255 * np.asarray(o['imagery'][..., 0])).astype(np.uint8))
-              raw_path = Path(f'base_imgs/{dataset}/{dsidx:03d}.jpg')
-              raw_path.parent.mkdir(exist_ok=True, parents=True)
-              raw.save(f'base_imgs/{dataset}/{dsidx:03d}.jpg')
-              base = 0.5 * (o['imagery'] + 1.0)
-              logging.draw_image(base, o['contour'], o['snake'], img_dir / f'{dsidx:03d}.pdf')
-              logging.draw_steps(base, o['contour'], o['snake_steps'], img_dir / f'{dsidx:03d}_steps.pdf')
-              dsidx += 1
+            # for i in range(len(output['imagery'])):
+            #   samples = jax.tree_map(lambda x: x[i], all_samples)
+            #   o = jax.tree_map(lambda x: x[i], output)
+
+            #   raw = Image.fromarray((255 * np.asarray(o['imagery'][..., 0])).astype(np.uint8))
+            #   base = 0.5 * (o['imagery'] + 1.0)
+
+            #   logging.draw_multi(base, o['contour'],
+            #       samples, img_dir / f'{dsidx:03d}_samples.pdf')
+            #   logging.draw_uncertainty(base, o['contour'],
+            #       o['snake'], samples, img_dir / f'{dsidx:03d}_std.pdf')
+
+            #   dsidx += 1
+
+            output_acc.append(output)
+            samples_acc.append(jnp.stack(all_samples, axis=1))
 
         logging.log_metrics(test_metrics, dataset, 0, do_wandb=False)
         for m in test_metrics:
             all_metrics[f'{dataset}/{m}'] = np.mean(test_metrics[m])
 
-    with (run / 'new_metrics.json').open('w') as f:
+        full_output  = jax.tree_multimap(lambda *x: jnp.concatenate(x, axis=0), *output_acc)
+        for drop in ['segmentation', 'mask', 'edge', 'snake_steps']:
+          if drop in full_output:
+            del full_output[drop]
+        full_samples = jnp.concatenate(samples_acc, axis=0)
+        np.savez(run / f'{dataset}.npz', **full_output, samples=full_samples)
+
+    with (run / 'uncertainty_metrics.json').open('w') as f:
         print(all_metrics, file=f)
