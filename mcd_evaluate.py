@@ -27,8 +27,7 @@ def monkey_patch():
   def with_dropout(fn):
     def inner(x):
       if MONKEY_PATCHED:
-        print('Dropping Out')
-        x = channel_dropout(x, rate=0.5)
+        x = channel_dropout(x, rate=0.2)
       return fn(x)
     return inner
 
