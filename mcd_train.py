@@ -19,8 +19,8 @@ import augmax
 import models
 from lib import utils, losses, logging
 from lib.utils import TrainingState, prep, changed_state, save_state
-from mcd_evaluate import test_step, METRICS, MCDConv2D
-hk.Conv2D = MCDConv2D
+from mcd_evaluate import test_step, METRICS, monkey_patch
+monkey_patch()
 
 from jax.config import config
 config.update("jax_numpy_rank_promotion", "raise")

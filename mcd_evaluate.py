@@ -19,44 +19,23 @@ from models.nnutils import channel_dropout
 
 
 MONKEY_PATCHED = True
-# Monkey-Patch Haiku Convs to get MC dropout
-class MCDConv2D(hk.ConvND):
-  def __init__(
-      self,
-      output_channels,
-      kernel_shape,
-      stride=1,
-      rate=1,
-      padding='SAME',
-      with_bias: bool = True,
-      w_init=None,
-      b_init=None,
-      data_format: str = "NHWC",
-      mask=None,
-      feature_group_count: int = 1,
-      name=None,
-  ):
-    super().__init__(
-        num_spatial_dims=2,
-        output_channels=output_channels,
-        kernel_shape=kernel_shape,
-        stride=stride,
-        rate=rate,
-        padding=padding,
-        with_bias=with_bias,
-        w_init=w_init,
-        b_init=b_init,
-        data_format=data_format,
-        mask=mask,
-        feature_group_count=feature_group_count,
-        name=name)
+def monkey_patch():
+  true_relu = jax.nn.relu
+  true_elu  = jax.nn.elu
+  true_gelu = jax.nn.gelu
 
-  def __call__(self, inputs: jnp.ndarray, *,
-      precision=None,):
-    x = super().__call__(inputs, precision=precision)
-    if MONKEY_PATCHED:
-      x = channel_dropout(x, rate=0.5)
-    return x
+  def with_dropout(fn):
+    def inner(x):
+      if MONKEY_PATCHED:
+        print('Dropping Out')
+        x = channel_dropout(x, rate=0.5)
+      return fn(x)
+    return inner
+
+  jax.nn.relu = with_dropout(true_relu)
+  jax.nn.elu  = with_dropout(true_elu)
+  jax.nn.gelu = with_dropout(true_gelu)
+
 
 METRICS = dict(
     mae            = losses.mae,
@@ -126,7 +105,7 @@ if __name__ == '__main__':
       img, *_ = prep(sample_batch)
       break
 
-    hk.Conv2D = Conv2D
+    monkey_patch()
     S, params, buffers = models.get_model(config, img)
     state = utils.load_state(run / 'latest.pkl')
     net = S.apply
