@@ -55,7 +55,6 @@ class MCDConv2D(hk.ConvND):
       precision=None,):
     x = super().__call__(inputs, precision=precision)
     if MONKEY_PATCHED:
-      print("Dropping Out")
       x = channel_dropout(x, rate=0.5)
     return x
 
