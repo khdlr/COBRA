@@ -100,6 +100,8 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         self.vertices = config['vertices']
         self.root = Path(config['data_root'])
         self.data_source = config['dataset']
+        if 'data_channels' in config:
+          self.channels = config['data_channels']
 
         if self.data_source == 'TUD':
             gts = sorted(self.root.glob('ground_truth/*/*/*_30m.tif'))
