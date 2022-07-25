@@ -7,6 +7,7 @@ from .hed_unet import HEDUNet
 from .rupprecht_dac import RupprechtDAC, RupprechtUNetDAC
 from .dance import DANCE
 from .vanilla_deepsnake import VanillaDeepSnake
+from .uncertainty_estimator import UncertaintyEstimator
 
 import jax
 import haiku as hk

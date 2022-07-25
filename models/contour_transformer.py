@@ -47,7 +47,4 @@ class ContourTransformer:
         features = transformer(in_tokens, out_tokens, is_training)
         contour  = predictor(features)
 
-        if is_training:
-            return contour
-        else:
-            return [contour]
+        return {'snake': contour}
