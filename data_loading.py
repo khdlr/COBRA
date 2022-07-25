@@ -25,23 +25,6 @@ def _isval(gt_path):
     return year >= 2020
 
 
-class DeterministicShuffle(torch.utils.data.Sampler):
-    def __init__(self, length, rng_key, repetitions=1):
-        self.rng_key = rng_key
-        self.length = length
-        self.repetitions = repetitions
-
-    def __iter__(self):
-        self.rng_key, *subkeys = jax.random.split(self.rng_key, self.repetitions+1)
-        permutations = jnp.concatenate([
-            jax.random.permutation(subkey, self.length) for subkey in subkeys
-        ])
-        return permutations.__iter__()
-
-    def __len__(self):
-        return self.length * self.repetitions
-
-
 def numpy_collate(batch):
     """Collate tensors as numpy arrays, taken from
     https://jax.readthedocs.io/en/latest/notebooks/Neural_Network_and_Data_Loading.html"""
@@ -64,7 +47,7 @@ def get_loader(batch_size, data_threads, mode, config, rng_key=None, drop_last=T
         drop_last = drop_last
     )
     if mode == 'train':
-        kwargs['sampler'] = DeterministicShuffle(len(data), rng_key)
+        kwargs['shuffle'] = True
 
     return torch.utils.data.DataLoader(data, **kwargs)
 
