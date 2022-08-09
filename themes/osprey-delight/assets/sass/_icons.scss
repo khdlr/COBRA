@@ -1,0 +1,29 @@
+.icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: -.142em;
+    fill: currentColor;
+}
+
+#icon-warning {
+    color: red;
+}
+
+.icon-md {
+    font-size: 2em
+}
+
+.icon-pulse-slow {
+    animation: color 8s infinite;
+    animation-direction: alternate;
+}
+
+.icon-pulse-fast {
+    animation: color 2s infinite;
+    animation-direction: alternate;
+}
+
+@keyframes color {
+    from {fill: $accent-color;}
+    to {fill: $primary-fg-color;}
+}

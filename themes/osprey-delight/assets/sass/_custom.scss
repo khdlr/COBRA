@@ -1,0 +1,18 @@
+// Show navbar only after scroll on mobile
+// nav {
+//   @media (max-width: $mobile-breakpoint) {
+//     opacity: 0;
+//   }
+// }
+
+// If using background, attach it on mobile devices to increase performance (down-side: no parallax effect anymore)
+// @media (max-width: $mobile-breakpoint) {
+//   .bg {
+//     background-attachment: scroll;
+//   }
+// }
+
+// Home logo animation as soon as page loads
+// .home-logo { 
+//   animation: scale-in-center .8s cubic-bezier(.25, .46, .45, .94) both;
+// }

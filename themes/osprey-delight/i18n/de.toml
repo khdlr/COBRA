@@ -1,0 +1,43 @@
+[view]
+other = "Ansehen"
+[code]
+other = "Code"
+[repo]
+other = "Repository"
+[download]
+other = "Herunterladen"
+[viewAll]
+other = "Alles ansehen"
+[letsChat]
+other = "Kontakt"
+[name]
+other = "Dein Name"
+[email]
+other = "E-Mail Adresse"
+[subject]
+other = "Betreff"
+[message]
+other = "Deine Nachricht"
+[send]
+other = "Senden"
+[thanksForYourEmail]
+other = "Danke für deine Nachricht!"
+[errorWhileSendingEmail]
+other = "Sorry, die Nachricht konnte nicht gesendet werden. Bitte Seite neu laden."
+[sendingEmail]
+other = "Nachricht wird geliefert..."
+[minuteRead]
+one = "Eine Minute Lesezeit"
+other = "{{.Count}} Minuten Lesezeit"
+[latestPosts]
+other = "Neueste Beiträge"
+[enableJavaScript]
+other = "Bitte aktiviere JavaScript um die Kommentare anzuzeigen von"
+[themeDevelopedBy]
+other = "Theme entwickelt von"
+[copyright]
+other = "Copyright"
+[noJsMsg]
+other = "Aktivieren Sie bitte JavaScript für die bestmögliche Erfahrung."
+[nojsForm]
+other = "Bitte aktivieren Sie JavaScript um das Kontaktformular zu nutzen."

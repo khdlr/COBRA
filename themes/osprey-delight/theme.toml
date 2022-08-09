@@ -1,0 +1,28 @@
+name = "Osprey Delight"
+
+license = "Apache License 2.0"
+licenselink = "https://github.com/kdevo/osprey-delight/blob/master/LICENSE.md"
+description = "Blazingly fast and modular theme perfectly suited for showing your work."
+
+homepage = "https://github.com/kdevo/osprey-delight"
+demosite = "https://hugo-mods.github.io/"
+
+tags = ["portfolio", "projects", "minimal", "personal", "landing", "onepage", "single-page", "hugo-mods", "responsive", "blog"]
+features = [
+  "gallery", "flexbox", # gallery/work portfolio
+  "contact", "contact-form", # basin contact formular with spambot protection 
+  "blog", # optional blog
+  "scroll-spy", "background", "lazyload", "blur-up", "lqip", "webp", "image-processing", "asset-driven", "lazyimg", # technical features
+  "github", "github-integration", "termynal", "social-icons", # some extras
+  "structured-data", "opengraph", "pagespeed-insights", # seo
+  "themeable", "hugo-mods", # customizability
+]
+
+[author]
+  name = "kdevo"
+  homepage = "https://kdevo.github.io/"
+
+[original]
+  author = "Toma Nistor"
+  homepage = "https://tomanistor.com"
+  repo = "https://github.com/tomanistor/osprey/"

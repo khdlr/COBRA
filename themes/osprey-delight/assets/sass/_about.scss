@@ -1,0 +1,28 @@
+.about {
+  width: 100%;
+  background-color: $secondary-bg-color;
+
+  p {
+    @include size(h3);
+    margin-top: $vertical-rhythm;
+  }
+
+  a {
+    background-image: linear-gradient($accent-color, $accent-color);
+    background-repeat: repeat-x;
+    background-position: 0 95%;
+    background-size: 2px 3px;
+    text-decoration: none;
+    text-shadow: .03em 0 $link-shadow-color, -.03em 0 $link-shadow-color, 0 .03em $link-shadow-color, 0 -.03em $link-shadow-color,
+    .06em 0 $link-shadow-color, -.06em 0 $link-shadow-color, .09em 0 $link-shadow-color, -.09em 0 $link-shadow-color,
+    .12em 0 $link-shadow-color, -.12em 0 $link-shadow-color, .15em 0 $link-shadow-color, -.15em 0 $link-shadow-color,
+    .03em .075em $link-shadow-color, -.03em .075em $link-shadow-color, .06em .075em $link-shadow-color,
+    -.06em .075em $link-shadow-color, .09em .075em $link-shadow-color, -.09em .075em $link-shadow-color,
+    .12em .075em $link-shadow-color, -.12em .075em $link-shadow-color, .15em .075em $link-shadow-color,
+    -.15em .075em $link-shadow-color;
+
+    &:hover {
+      color: $accent-color;
+    }
+  }
+}

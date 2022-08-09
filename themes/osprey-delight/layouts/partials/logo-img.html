@@ -1,0 +1,9 @@
+{{ partial "lazyimg" (dict 
+    "img" site.Params.logoBig
+    "maxsize" (default "1200x" site.Params.Image.Logo.resize)
+    "lqipsize" (default "120x" site.Params.Image.Logo.resizeLQIP)
+    "resizeoptions" (default "q90 MitchellNetravali" site.Params.Image.Logo.resizeOptions)
+    "alt" site.Title 
+    "class" "home-logo"
+    "renderer" (default "webp" site.Params.Image.Logo.renderer)
+    "resizer" (default "auto" site.Params.Image.Logo.resizer)) }}

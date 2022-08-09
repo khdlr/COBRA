@@ -1,0 +1,10 @@
+{{ partial "lazyimg" (dict 
+    "img" .Params.image
+    "maxsize" (default "600x" site.Params.Image.Gallery.resize)
+    "responsivesizes" (default (slice "420x" "600x"))
+    "lqipsize" (default "16x Gaussian" site.Params.Gallery.Gallery.resizeLQIP)
+    "resizeoptions" (default "q90 MitchellNetravali" site.Params.Image.Gallery.resizeOptions)
+    "alt" (default .Params.title .Params.alt) 
+    "class" ""
+    "renderer" (default "lqip-webp" site.Params.Image.Gallery.renderer)
+    "resizer" (default "responsive" site.Params.Image.Gallery.resizer)) }}

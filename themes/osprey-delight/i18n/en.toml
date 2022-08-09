@@ -1,0 +1,43 @@
+[view]
+other = "View"
+[code]
+other = "Code"
+[repo]
+other = "Repository"
+[download]
+other = "Download"
+[viewAll]
+other = "View All"
+[letsChat]
+other = "Contact"
+[name]
+other = "Your name"
+[email]
+other = "E-Mail address"
+[subject]
+other = "Subject"
+[message]
+other = "Your message"
+[send]
+other = "Send"
+[thanksForYourEmail]
+other = "Thanks for your message!"
+[errorWhileSendingEmail]
+other = "Sorry, we couldn't send your message! Please reload."
+[sendingEmail]
+other = "Deploying your message..."
+[minuteRead]
+one = "One minute read"
+other = "{{.Count}} minutes read"
+[latestPosts]
+other = "Latest Posts"
+[enableJavaScript]
+other = "Please enable JavaScript to view comments powered by"
+[themeDevelopedBy]
+other = "Theme developed by"
+[copyright]
+other = "Copyright"
+[noJsMsg]
+other = "Please enable JavaScript for the full experience!"
+[nojsForm]
+other = "Please enable JavaScript to use the contact form."

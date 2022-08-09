@@ -1,0 +1,73 @@
+// Font styles
+strong {
+  font-weight: 600;
+}
+
+del,
+s {
+  text-decoration: line-through;
+}
+
+em,
+dfn {
+  font-style: italic;
+}
+
+a {
+  transition: color .2s ease-out;
+  text-decoration: none;
+
+  img {
+    border: 0;
+  }
+
+  &:not(.nav-icon):hover {
+    color: $accent-color;
+  }
+}
+
+small {
+  font-size: 0.8em;
+  color: $alt-text-color;
+}
+
+// Images
+img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+// Lists
+ul,
+ol {
+  margin-bottom: $vertical-rhythm;
+
+  li {
+    margin-left: 1.25em;
+
+  }
+}
+
+code {
+  font-family: $font-code;
+}
+
+ul li {
+  list-style-type: disc;
+}
+
+p {
+  margin-bottom: $vertical-rhythm;
+}
+
+// Lazysizes
+.no-js img.lazyload {
+  display: none;
+}
+
+// Prevent "broken image" icon from showing up
+img.lazyload:not([src]) {
+	visibility: hidden;
+}
