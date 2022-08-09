@@ -20,7 +20,7 @@ module:
 ## Generic theme parameters:
 Params:
   author: "Konrad Heidler"
-  description: "Osprey Delight: Example Site"
+  description: "A Deep Active Contour Model for Delineating Glacier Calving Fronts"
 
   # logoBig appears at the top of the page. Use a path relative to the assets dir for auto-resizing. 
   logoBig: "1x1.png"
