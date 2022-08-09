@@ -1,8 +1,8 @@
-module github.com/kdevo/osprey-delight/exampleSite
+module github.com/khdlr/COBRA/project_page
 
 go 1.13
 
 require (
-	github.com/kdevo/osprey-delight v1.3.2-0.20211101194641-3a580e4f06b2 // indirect
 	github.com/kdevo/osprey-delight/v5 v5.0.2 // indirect
+	github.com/khdlr/osprey-delight/v5 v5.0.3 // indirect
 )

@@ -15,3 +15,5 @@ github.com/kdevo/osprey-delight v4.0.0+incompatible h1:xxe08qGTZKbCw6SQnjVne+/5W
 github.com/kdevo/osprey-delight v4.0.0+incompatible/go.mod h1:otTJ/We100AdzCRIojN8r+9nCm8X/o3Z3ut3N4RIY04=
 github.com/kdevo/osprey-delight/v5 v5.0.2 h1:MCrKV4HIRyI99OLw7iRKNXUUuIjCQXlWbmI0sG4122Y=
 github.com/kdevo/osprey-delight/v5 v5.0.2/go.mod h1:a3jNq3hacdIeZECrpJg9BM7PSK0X2kIQNzV/ZJ66mwk=
+github.com/khdlr/osprey-delight/v5 v5.0.3 h1:f3DnqNipqdv71TGLwHjSW7CYltfNclUeHw1I3O/bxrk=
+github.com/khdlr/osprey-delight/v5 v5.0.3/go.mod h1:MkOsxBUDfWYhM937qkN0woaOsislYjQ4A7yluobodpQ=
