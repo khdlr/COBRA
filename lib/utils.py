@@ -22,33 +22,34 @@ class TrainingState(NamedTuple):
 
 def changed_state(state, params=None, buffers=None, opt=None):
     return TrainingState(
-        params = state.params if params is None else params,
-        buffers = state.buffers if buffers is None else buffers,
-        opt = state.opt if opt is None else opt,
+        params=state.params if params is None else params,
+        buffers=state.buffers if buffers is None else buffers,
+        opt=state.opt if opt is None else opt,
     )
 
 
 def save_state(state, out_path):
     state = jax.device_get(state)
-    with out_path.open('wb') as f:
+    with out_path.open("wb") as f:
         pickle.dump(state, f)
 
 
 def load_state(checkpoint_path):
-    with open(checkpoint_path, 'rb') as f:
+    with open(checkpoint_path, "rb") as f:
         state = pickle.load(f)
     return state
 
 
 def prep(batch, key=None, augment=False, input_types=None):
     ops = []
-    if augment: ops += [
-        augmax.HorizontalFlip(),
-        augmax.VerticalFlip(),
-        augmax.Rotate90(),
-        augmax.Rotate(15),
-        # augmax.Warp(coarseness=16)
-    ]
+    if augment:
+        ops += [
+            augmax.HorizontalFlip(),
+            augmax.VerticalFlip(),
+            augmax.Rotate90(),
+            augmax.Rotate(15),
+            # augmax.Warp(coarseness=16)
+        ]
     ops += [augmax.ByteToFloat()]
     # if augment: ops += [
     #     augmax.ChannelShuffle(p=0.1),
@@ -75,8 +76,8 @@ def prep(batch, key=None, augment=False, input_types=None):
 
 
 def distance_matrix(a, b):
-    a = rearrange(a, '(true pred) d -> true pred d', true=1)
-    b = rearrange(b, '(true pred) d -> true pred d', pred=1)
+    a = rearrange(a, "(true pred) d -> true pred d", true=1)
+    b = rearrange(b, "(true pred) d -> true pred d", pred=1)
     D = jnp.sum(jnp.square(a - b), axis=-1)
     return D
 
@@ -87,33 +88,40 @@ def pad_inf(inp, before, after):
 
 def fmt_num(x):
     if jnp.isinf(x):
-        return '∞'.rjust(8)
+        return "∞".rjust(8)
     else:
-        return f'{x:.2f}'.rjust(8)
+        return f"{x:.2f}".rjust(8)
 
 
 def fmt(xs, extra=None):
-    tag = ''
+    tag = ""
     if isinstance(xs, str):
         tag = xs
         xs = extra
     rank = len(xs.shape)
     if rank == 1:
-        print(tag, ','.join([fmt_num(x) for x in xs]))
+        print(tag, ",".join([fmt_num(x) for x in xs]))
     elif rank == 2:
-        print('\n'.join(','.join([fmt_num(x) for x in row]) for row in xs))
+        print("\n".join(",".join([fmt_num(x) for x in row]) for row in xs))
         print()
 
 
 def assert_git_clean():
-    diff = check_output(["git", "diff", "--name-only", "HEAD"]).decode("utf-8").splitlines()
-    if diff and diff != ['config.yml']:
-      assert False, "Won't run on a dirty git state!"
+    diff = (
+        check_output(["git", "diff", "--name-only", "HEAD"])
+        .decode("utf-8")
+        .splitlines()
+    )
+    if diff and diff != ["config.yml"]:
+        assert False, "Won't run on a dirty git state!"
 
 
 def snakify(mask, vertices):
-    res = host_callback.call(snakify_host, (mask, vertices),
-            result_shape=jnp.zeros([mask.shape[0], vertices, 2], jnp.float32))
+    res = host_callback.call(
+        snakify_host,
+        (mask, vertices),
+        result_shape=jnp.zeros([mask.shape[0], vertices, 2], jnp.float32),
+    )
     return res
 
 
@@ -143,20 +151,19 @@ def _infer_shape(
     size: Union[int, Sequence[int]],
     channel_axis: Optional[int] = -1,
 ) -> Tuple[int, ...]:
-  """Infer shape for pooling window or strides."""
-  if isinstance(size, int):
-    if channel_axis and not 0 <= abs(channel_axis) < x.ndim:
-      raise ValueError(f"Invalid channel axis {channel_axis} for {x.shape}")
-    if channel_axis and channel_axis < 0:
-      channel_axis = x.ndim + channel_axis
-    return (1,) + tuple(size if d != channel_axis else 1
-                        for d in range(1, x.ndim))
-  elif len(size) < x.ndim:
-    # Assume additional dimensions are batch dimensions.
-    return (1,) * (x.ndim - len(size)) + tuple(size)
-  else:
-    assert x.ndim == len(size)
-    return tuple(size)
+    """Infer shape for pooling window or strides."""
+    if isinstance(size, int):
+        if channel_axis and not 0 <= abs(channel_axis) < x.ndim:
+            raise ValueError(f"Invalid channel axis {channel_axis} for {x.shape}")
+        if channel_axis and channel_axis < 0:
+            channel_axis = x.ndim + channel_axis
+        return (1,) + tuple(size if d != channel_axis else 1 for d in range(1, x.ndim))
+    elif len(size) < x.ndim:
+        # Assume additional dimensions are batch dimensions.
+        return (1,) * (x.ndim - len(size)) + tuple(size)
+    else:
+        assert x.ndim == len(size)
+        return tuple(size)
 
 
 def min_pool(
@@ -166,24 +173,26 @@ def min_pool(
     padding: str = "SAME",
     channel_axis: Optional[int] = -1,
 ) -> jnp.ndarray:
-  """Min pool.
-  Args:
-    value: Value to pool.
-    window_shape: Shape of the pooling window, an int or same rank as value.
-    strides: Strides of the pooling window, an int or same rank as value.
-    padding: Padding algorithm. Either ``VALID`` or ``SAME``.
-    channel_axis: Axis of the spatial channels for which pooling is skipped,
-      used to infer ``window_shape`` or ``strides`` if they are an integer.
-  Returns:
-    Pooled result. Same rank as value.
-  """
-  if padding not in ("SAME", "VALID"):
-    raise ValueError(f"Invalid padding '{padding}', must be 'SAME' or 'VALID'.")
+    """Min pool.
+    Args:
+      value: Value to pool.
+      window_shape: Shape of the pooling window, an int or same rank as value.
+      strides: Strides of the pooling window, an int or same rank as value.
+      padding: Padding algorithm. Either ``VALID`` or ``SAME``.
+      channel_axis: Axis of the spatial channels for which pooling is skipped,
+        used to infer ``window_shape`` or ``strides`` if they are an integer.
+    Returns:
+      Pooled result. Same rank as value.
+    """
+    if padding not in ("SAME", "VALID"):
+        raise ValueError(f"Invalid padding '{padding}', must be 'SAME' or 'VALID'.")
 
-  window_shape = _infer_shape(value, window_shape, channel_axis)
-  strides = _infer_shape(value, strides, channel_axis)
+    window_shape = _infer_shape(value, window_shape, channel_axis)
+    strides = _infer_shape(value, strides, channel_axis)
 
-  return jax.lax.reduce_window(value, jnp.inf, jax.lax.min, window_shape, strides, padding)
+    return jax.lax.reduce_window(
+        value, jnp.inf, jax.lax.min, window_shape, strides, padding
+    )
 
 
 def fnot(fun):

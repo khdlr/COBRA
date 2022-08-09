@@ -12,10 +12,10 @@ class ResBlock(hk.Module):
         self.inner_dim = inner_dim
 
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
-        init  = hk.Conv2D(self.inner_dim, 1)
+        init = hk.Conv2D(self.inner_dim, 1)
         conv1 = hk.Conv2D(self.inner_dim, 3)
         conv2 = hk.Conv2D(self.inner_dim, 3)
-        post  = hk.Conv2D(self.dim, 1)
+        post = hk.Conv2D(self.dim, 1)
 
         skip = x
         x = init(jax.nn.relu(x))
@@ -33,32 +33,32 @@ class SimpleBackbone(hk.Module):
     def __call__(self, x, is_training=False):
         m = self.multiplier
 
-        block1 = hk.Sequential([
-            hk.Conv2D(1*m, 4, 2),
-            ResBlock(1*m),
-            ResBlock(1*m)
-        ], name='BackboneBlock1')
+        block1 = hk.Sequential(
+            [hk.Conv2D(1 * m, 4, 2), ResBlock(1 * m), ResBlock(1 * m)],
+            name="BackboneBlock1",
+        )
 
-        block2 = hk.Sequential([
-            hk.Conv2D(2*m, 4, 2),
-            ResBlock(2*m),
-            ResBlock(2*m)
-        ], name='BackboneBlock2')
+        block2 = hk.Sequential(
+            [hk.Conv2D(2 * m, 4, 2), ResBlock(2 * m), ResBlock(2 * m)],
+            name="BackboneBlock2",
+        )
 
-        block3 = hk.Sequential([
-            hk.Conv2D(4*m, 4, 2),
-            ResBlock(4*m),
-            ResBlock(4*m)
-        ], name='BackboneBlock2')
+        block3 = hk.Sequential(
+            [hk.Conv2D(4 * m, 4, 2), ResBlock(4 * m), ResBlock(4 * m)],
+            name="BackboneBlock2",
+        )
 
-        block4 = hk.Sequential([
-            hk.Conv2D(8*m, 4, 2),
-            ResBlock(8*m),
-            ResBlock(8*m),
-            ResBlock(8*m),
-            ResBlock(8*m),
-            ResBlock(8*m)
-        ], name='BackboneBlock2')
+        block4 = hk.Sequential(
+            [
+                hk.Conv2D(8 * m, 4, 2),
+                ResBlock(8 * m),
+                ResBlock(8 * m),
+                ResBlock(8 * m),
+                ResBlock(8 * m),
+                ResBlock(8 * m),
+            ],
+            name="BackboneBlock2",
+        )
 
         x1 = block1(x)
         x2 = block2(x1)
@@ -83,6 +83,3 @@ class UNetEncoder(hk.Module):
             skip_connections.append(x)
 
         return skip_connections
-
-
-

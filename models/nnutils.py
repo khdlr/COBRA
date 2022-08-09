@@ -25,7 +25,7 @@ def channel_dropout(x, rate):
         return x
 
     keep_rate = 1.0 - rate
-    mask_shape = (x.shape[0], *((1,) * (x.ndim-2)), x.shape[-1])
+    mask_shape = (x.shape[0], *((1,) * (x.ndim - 2)), x.shape[-1])
 
     keep = jax.random.bernoulli(hk.next_rng_key(), keep_rate, shape=mask_shape)
     return keep * x / keep_rate
@@ -39,16 +39,16 @@ def sample_dropout(x, rate):
         return x
 
     keep_rate = 1.0 - rate
-    mask_shape = (x.shape[0], *((1,) * (x.ndim-1)))
+    mask_shape = (x.shape[0], *((1,) * (x.ndim - 1)))
 
     keep = jax.random.bernoulli(hk.next_rng_key(), keep_rate, shape=mask_shape)
     return keep * x
 
 
 class ConvBNAct(hk.Module):
-    def __init__(self, *args, bn=True, act='relu', **kwargs):
+    def __init__(self, *args, bn=True, act="relu", **kwargs):
         super().__init__()
-        kwargs['with_bias'] = False
+        kwargs["with_bias"] = False
         self.conv = hk.Conv2D(*args, **kwargs)
 
         if bn:
@@ -71,7 +71,9 @@ class ConvBNAct(hk.Module):
 
 
 class SepConvBN(hk.Module):
-    def __init__(self, filters, stride=1, kernel_size=3, rate=1, depth_activation=False):
+    def __init__(
+        self, filters, stride=1, kernel_size=3, rate=1, depth_activation=False
+    ):
         super().__init__()
         self.stride = stride
         self.kernel_size = kernel_size
@@ -83,16 +85,21 @@ class SepConvBN(hk.Module):
         if self.depth_activation:
             x = jax.nn.relu(x)
         x = hk.Conv2D(self.filters, 1)(x)
-        x = ConvBNAct(self.filters, self.kernel_size, stride=self.stride,
-            rate=self.rate, feature_group_count=self.filters)(x, is_training)
+        x = ConvBNAct(
+            self.filters,
+            self.kernel_size,
+            stride=self.stride,
+            rate=self.rate,
+            feature_group_count=self.filters,
+        )(x, is_training)
 
         return x
 
 
 class ConvBNAct1D(hk.Module):
-    def __init__(self, *args, bn=True, act='relu', **kwargs):
+    def __init__(self, *args, bn=True, act="relu", **kwargs):
         super().__init__()
-        kwargs['with_bias'] = False
+        kwargs["with_bias"] = False
         self.conv = hk.Conv1D(*args, **kwargs)
 
         if bn:
@@ -115,21 +122,30 @@ class ConvBNAct1D(hk.Module):
 
 
 class SepConvBN1D(hk.Module):
-    def __init__(self, filters, stride=1, kernel_size=3, rate=1, depth_activation=False):
+    def __init__(
+        self, filters, stride=1, kernel_size=3, rate=1, depth_activation=False
+    ):
         super().__init__()
         self.stride = stride
         self.kernel_size = kernel_size
         self.rate = rate
         self.filters = filters
-        self.act = 'relu' if depth_activation else None
+        self.act = "relu" if depth_activation else None
 
     def __call__(self, x, is_training=False):
         B, T, C = x.shape
         if self.act is None:
             x = jax.nn.relu(x)
 
-        x = ConvBNAct1D(C, self.kernel_size, stride=self.stride,
-            rate=self.rate, feature_group_count=C, act=self.act, bn=False)(x, is_training)
+        x = ConvBNAct1D(
+            C,
+            self.kernel_size,
+            stride=self.stride,
+            rate=self.rate,
+            feature_group_count=C,
+            act=self.act,
+            bn=False,
+        )(x, is_training)
         x = ConvBNAct1D(self.filters, 1, bn=False)(x, is_training)
 
         return x
@@ -142,6 +158,4 @@ def upsample(x, factor=None, shp=None):
         W *= factor
     else:
         H, W = shp
-    return jax.image.resize(x, [B, H, W, C], 'bilinear')
-
-
+    return jax.image.resize(x, [B, H, W, C], "bilinear")

@@ -32,20 +32,20 @@ class HEDUNet:
         for feature_map in reversed(multilevel_features):
             p = hk.Conv2D(2, 1)(feature_map)
             q = hk.Conv2D(2, 1)(feature_map)
-            Ps.append(jax.image.resize(p, [B, H, W, 2], 'bilinear'))
-            Qs.append(jax.image.resize(q, [B, H, W, 2], 'bilinear'))
+            Ps.append(jax.image.resize(p, [B, H, W, 2], "bilinear"))
+            Qs.append(jax.image.resize(q, [B, H, W, 2], "bilinear"))
 
         P = jnp.concatenate(Ps, axis=-1)
         Q = jnp.concatenate(Qs, axis=-1)
 
-        A  = rearrange(Q, 'B H W (R C) -> B H W C R', C=2)
-        P_ = rearrange(P, 'B H W (R C) -> B H W C R', C=2)
-        final_pred = jnp.einsum('bhwcr,bhwcr->bhwc', jax.nn.softmax(A, axis=-1), P_)
+        A = rearrange(Q, "B H W (R C) -> B H W C R", C=2)
+        P_ = rearrange(P, "B H W (R C) -> B H W C R", C=2)
+        final_pred = jnp.einsum("bhwcr,bhwcr->bhwc", jax.nn.softmax(A, axis=-1), P_)
         all_preds = jnp.concatenate([final_pred, P], axis=-1)
 
         seg, edge = jnp.split(final_pred, 2, axis=-1)
 
-        return {'segmentation': seg, 'edge': edge, 'hed_unet_stack': all_preds}
+        return {"segmentation": seg, "edge": edge, "hed_unet_stack": all_preds}
 
 
 def BatchNorm():
@@ -75,5 +75,5 @@ def UpBlock(x, skip, is_training):
     x = hk.Conv2DTranspose(C, 2, stride=2, with_bias=False)(x)
     x = jax.nn.relu(BatchNorm()(x, is_training))
     x = jnp.concatenate([x, skip], axis=-1)
-    x = Convx2(x, C, is_training) 
+    x = Convx2(x, C, is_training)
     return x
