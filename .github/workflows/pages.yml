@@ -33,8 +33,6 @@ jobs:
         with:
           hugo-version: 'latest'
           # extended: true
-      - name: tree
-        run: tree
       - name: Build
         run: hugo --minify
       - name: Upload artifact
