@@ -46,7 +46,7 @@ Params:
 
   mdTagline: |
     # A Deep Active Contour Model for Delineating Glacier Calving Fronts
-    <div id="visual_row">
+    <div class="visual_row">
       <img src="./anim/11.svg"></img>
       <img src="./anim/16.svg"></img>
       <img src="./anim/25.svg"></img>
@@ -129,10 +129,14 @@ Menu:
       identifier: cobra
       url: "/#cobra"
       weight: 2
-    - name: Paper
-      identifier: paper
-      url: "/#paper"
-      weight: 10
+    - name: Results
+      identifier: results
+      url: "/#results"
+      weight: 3
+        #     - name: Paper
+        #       identifier: paper
+        #       url: "/#paper"
+        #       weight: 10
     - name: "Code"
       identifier: code
       url: "/#code"
