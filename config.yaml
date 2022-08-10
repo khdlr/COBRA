@@ -46,11 +46,11 @@ Params:
 
   mdTagline: |
     # A Deep Active Contour Model for Delineating Glacier Calving Fronts
-    <div class="visual_row">
-      <img src="./anim/11.svg"></img>
-      <img src="./anim/16.svg"></img>
-      <img src="./anim/25.svg"></img>
-    </div>
+  #   <div class="visual_row">
+  #     <img src="./anim/11.svg"></img>
+  #     <img src="./anim/18.svg"></img>
+  #     <img src="./anim/25.svg"></img>
+  #   </div>
 
   # enforceSinglePage will enforce redirection to the baseURL for all sub-directories/-pages.
   #   Example: If you create about.md, Hugo will also create a '/about/index.html' which might not be what you want for a *single* page site. 
@@ -129,9 +129,9 @@ Menu:
       identifier: cobra
       url: "/#cobra"
       weight: 2
-    - name: Results
-      identifier: results
-      url: "/#results"
+    - name: Visualization
+      identifier: visualization
+      url: "/#visualization"
       weight: 3
         #     - name: Paper
         #       identifier: paper

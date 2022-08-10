@@ -8,7 +8,8 @@ img .home-logo {
 }
 
 div.visual_row img {
-  max-width: 30vmin;
+  max-width: 30vh;
+  margin-bottom: 0.3em;
 }
 
 p a {
@@ -20,7 +21,7 @@ p a {
 }
 
 .container {
-  max-width: 43.75rem; // 700px
+  max-width: 50rem; // 700px
   margin: auto;
   padding: $vertical-rhythm * 2 0 0;
 }
