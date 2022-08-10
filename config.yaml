@@ -129,9 +129,9 @@ Menu:
       identifier: cobra
       url: "/#cobra"
       weight: 2
-    - name: Visualization
-      identifier: visualization
-      url: "/#visualization"
+    - name: Results
+      identifier: results
+      url: "/#results"
       weight: 3
         #     - name: Paper
         #       identifier: paper

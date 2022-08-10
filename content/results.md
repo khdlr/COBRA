@@ -1,7 +1,10 @@
 +++
-title = "Visualization"
+title = "Results"
 draft = false
 +++
+
+These animations show how COBRA iteratively
+predicts glacier calving fronts:
 
 <div class="visual_row">
   <img src="./anim/6.svg"></img>&nbsp;<img src="./anim/8.svg"></img>

@@ -5,6 +5,6 @@
 
 workspace
 
-# /resources/*
+/resources/*
 
 .env
