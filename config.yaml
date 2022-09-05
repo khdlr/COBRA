@@ -118,17 +118,17 @@ Params:
 ##   See: https://gohugo.io/content-management/menus/#add-content-to-menus
 Menu:
   Main:
-    - name: "Idea"
-      # identifier controls the section type (and therewith the appearence).
-      identifier: idea
-      # url must be an anchor, for smooth scrolling to it when clicking on the menu item.
-      url: "/#idea"
-      # weight controls the order of the menu items.
-      weight: 1
-    - name: COBRA
-      identifier: cobra
-      url: "/#cobra"
-      weight: 2
+    # - name: "Idea"
+    #   # identifier controls the section type (and therewith the appearence).
+    #   identifier: idea
+    #   # url must be an anchor, for smooth scrolling to it when clicking on the menu item.
+    #   url: "/#idea"
+    #   # weight controls the order of the menu items.
+    #   weight: 1
+    # - name: COBRA
+    #   identifier: cobra
+    #   url: "/#cobra"
+    #   weight: 2
     - name: Results
       identifier: results
       url: "/#results"
