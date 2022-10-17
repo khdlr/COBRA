@@ -10,9 +10,8 @@ import wandb
 from tqdm import tqdm
 from PIL import Image
 
-import models
 from data_loading import get_loader
-from lib import losses, utils, logging
+from lib import losses, utils, logging, models
 from lib.utils import TrainingState, prep, load_state
 
 

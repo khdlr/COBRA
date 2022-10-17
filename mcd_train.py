@@ -16,8 +16,7 @@ from tqdm import tqdm
 import sys
 import augmax
 
-import models
-from lib import utils, losses, logging
+from lib import utils, losses, logging, models
 from lib.utils import TrainingState, prep, changed_state, save_state
 from mcd_evaluate import test_step, METRICS, monkey_patch
 
