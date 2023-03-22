@@ -1,6 +1,7 @@
 import yaml
 import pickle
 from pathlib import Path
+import argparse
 
 import numpy as np
 import jax
@@ -13,7 +14,6 @@ from functools import partial
 import wandb
 from tqdm import tqdm
 
-import sys
 import augmax
 
 from lib import utils, losses, logging, models
@@ -93,9 +93,14 @@ def train_step(batch, state, key, net):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 or sys.argv[1] != "-f":
-        utils.assert_git_clean()
-    train_key = jax.random.PRNGKey(42)
+    parser = argparse.ArgumentParser(prog='COBRA Training Script')
+    parser.add_argument('-f', '--skip-git-check', dest='do_git_check', action='store_false', dest='check_git')
+    parser.add_argument('-s', '--seed', type=int, default=42)
+    args = parser.parse_args()
+
+    if args.do_git_check:
+      utils.assert_git_clean()
+    train_key = jax.random.PRNGKey(args.seed)
     persistent_val_key = jax.random.PRNGKey(27)
 
     config = yaml.load(open("config.yml"), Loader=yaml.SafeLoader)
