@@ -141,7 +141,7 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         confighash = md5(
             (
                 self.tilesize,
-                self.vertices,
+                256,
                 # self.data_source,
                 self.subtiles,
             )
@@ -277,7 +277,7 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
                 mask, [T, T], order=0, anti_aliasing=False, preserve_range=True
             ).astype(bool)
 
-            full_snake = snakify(full_mask, self.vertices)
+            full_snake = snakify(full_mask, 256)
             if len(full_snake) == 1:
                 taken += 1
                 yield (full_tile, full_mask, full_snake[0])
@@ -296,7 +296,7 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
                     if useful < 0.3 or useful > 0.7 or invalid > 0.2:
                         continue
 
-                    snakes = snakify(patch_mask, self.vertices)
+                    snakes = snakify(patch_mask, 256)
                     count += 1
 
                     if len(snakes) == 1:
@@ -318,6 +318,12 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
         mask = self.mask_cache[idx]
         snake = self.snake_cache[idx]
 
+        if len(snake) > self.vertices:
+          stride = len(snake) // self.vertices
+          start = stride // 2
+          snake = snake[start::stride]
+        assert len(snake) == self.vertices, "vertices > 256 not currently supported"
+
         return ref, mask, snake
 
     def __len__(self):
@@ -326,12 +332,12 @@ class GlacierFrontDataset(torch.utils.data.Dataset):
 
 if __name__ == "__main__":
     config = {
-        "dataset": "TUD-MS",
-        "data_root": "../aicore/uc1_new/",
-        "vertices": 64,
+        "dataset": "CALFIN",
+        "data_root": "/p/project/hai_gmb_dl/konrad/CALFIN",
+        "vertices": 16,
         "tile_size": 256,
     }
-    ds = GlacierFrontDataset("test_esa", config, subtiles=False)
+    ds = GlacierFrontDataset("validation", config, subtiles=False)
     print(len(ds))
     for x in ds[0]:
         print(x.shape, x.dtype)

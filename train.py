@@ -96,6 +96,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='COBRA Training Script')
     parser.add_argument('-f', '--skip-git-check', action='store_false', dest='check_git')
     parser.add_argument('-s', '--seed', type=int, default=42)
+    parser.add_argument('-c', '--config-file', type=Path, default=Path('config.yml'))
+    parser.add_argument('-v', '--vertices', type=int)
     args = parser.parse_args()
 
     if args.check_git:
@@ -103,7 +105,9 @@ if __name__ == "__main__":
     train_key = jax.random.PRNGKey(args.seed)
     persistent_val_key = jax.random.PRNGKey(27)
 
-    config = yaml.load(open("config.yml"), Loader=yaml.SafeLoader)
+    config = yaml.load(open(args.config_file), Loader=yaml.SafeLoader)
+    if args.vertices is not None:
+      config['vertices'] = args.vertices
     # Don't do this at home, kids!
     loss_fn = eval(config["loss_function"], losses.__dict__)
 
