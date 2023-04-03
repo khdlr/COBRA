@@ -94,11 +94,11 @@ def train_step(batch, state, key, net):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='COBRA Training Script')
-    parser.add_argument('-f', '--skip-git-check', dest='do_git_check', action='store_false', dest='check_git')
+    parser.add_argument('-f', '--skip-git-check', action='store_false', dest='check_git')
     parser.add_argument('-s', '--seed', type=int, default=42)
     args = parser.parse_args()
 
-    if args.do_git_check:
+    if args.check_git:
       utils.assert_git_clean()
     train_key = jax.random.PRNGKey(args.seed)
     persistent_val_key = jax.random.PRNGKey(27)
