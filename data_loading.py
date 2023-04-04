@@ -337,7 +337,7 @@ if __name__ == "__main__":
         "vertices": 16,
         "tile_size": 256,
     }
-    ds = GlacierFrontDataset("validation", config, subtiles=False)
+    ds = GlacierFrontDataset("train", config, subtiles=True)
     print(len(ds))
     for x in ds[0]:
         print(x.shape, x.dtype)
