@@ -141,6 +141,10 @@ Menu:
       identifier: code
       url: "/#code"
       weight: 20
+    - name: "Map"
+      identifier: map
+      url: "/#map"
+      weight: 40
     # - name: "Work"
     #   identifier: gallery
     #   url: "/#work"
