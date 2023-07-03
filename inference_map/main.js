@@ -51,12 +51,32 @@ const s2_source = new WMTS({
   })
 });
 
+const extract_date = function(feature) {
+  let src = feature.get('src');
+  let match1 = /((?:19|20)\d{2})-(\d{1,2})-(\d{1,2})/
+  let match2 = /((?:19|20)\d{2})(\d{2})(\d{2})/
+  let matches = (src.match(match1) || []).concat(src.match(match2) || []);
+  console.log(matches);
+  return matches[1] + '-' + matches[2];
+}
+
 // Create the basemap layer
 const s2_layer = new TileLayer({
   source: s2_source,
 });
 
-const calfin_style = new Style({stroke: new Stroke({color: 'red', width: 3})});
+const calfin_style = feature => new Style({
+  stroke: new Stroke({color: 'red', width: 3}),
+  text: new Text({
+    // textAlign: align == '' ? undefined : align,
+    textBaseline: 'middle',
+    font: 'bold 11pt sans-serif',
+    text: extract_date(feature),
+    fill: new Fill({color: 'red'}),
+    stroke: new Stroke({color: 'white', width: 4}),
+    placement: 'line',
+  })
+});
 const calfin_layer = new VectorLayer({
   source: new VectorSource({
     url: 'geojson/CALFIN.geo.json',
@@ -66,7 +86,18 @@ const calfin_layer = new VectorLayer({
   title: '<span style="color:red;font-weight:bold;">—</span> Calfin Predictions'
 });
 
-const tud_style = new Style({stroke: new Stroke({color: 'blue', width: 3})});
+const tud_style = feature => new Style({
+  stroke: new Stroke({color: 'blue', width: 3}),
+  text: new Text({
+    // textAlign: align == '' ? undefined : align,
+    textBaseline: 'middle',
+    font: 'bold 11pt sans-serif',
+    text: extract_date(feature),
+    fill: new Fill({color: 'blue'}),
+    stroke: new Stroke({color: 'white', width: 4}),
+    placement: 'line',
+  })
+});
 const tud_layer = new VectorLayer({
   source: new VectorSource({
     url: 'geojson/TUD.geo.json',
@@ -76,7 +107,18 @@ const tud_layer = new VectorLayer({
   title: '<span style="color:blue;font-weight:bold;">—</span> TUD Predictions'
 });
 
-const baumhoer_style = new Style({stroke: new Stroke({color: 'green', width: 3})});
+const baumhoer_style = feature => new Style({
+  stroke: new Stroke({color: 'green', width: 3}),
+  text: new Text({
+    // textAlign: align == '' ? undefined : align,
+    textBaseline: 'middle',
+    font: 'bold 11pt sans-serif',
+    text: extract_date(feature),
+    fill: new Fill({color: 'green'}),
+    stroke: new Stroke({color: 'white', width: 4}),
+    placement: 'line',
+  })
+});
 const baumhoer_layer = new VectorLayer({
   source: new VectorSource({
     url: 'geojson/Baumhoer.geo.json',
