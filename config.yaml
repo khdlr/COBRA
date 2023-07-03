@@ -125,18 +125,18 @@ Menu:
     #   url: "/#idea"
     #   # weight controls the order of the menu items.
     #   weight: 1
-    # - name: COBRA
-    #   identifier: cobra
-    #   url: "/#cobra"
-    #   weight: 2
+    - name: COBRA
+      identifier: cobra
+      url: "/#cobra"
+      weight: 2
     - name: Results
       identifier: results
       url: "/#results"
       weight: 3
-        #     - name: Paper
-        #       identifier: paper
-        #       url: "/#paper"
-        #       weight: 10
+    - name: Paper
+      identifier: paper
+      url: "/#paper"
+      weight: 10
     - name: "Code"
       identifier: code
       url: "/#code"
