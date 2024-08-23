@@ -20,9 +20,7 @@ from lib import utils, losses, logging, models
 from lib.utils import TrainingState, prep, changed_state, save_state
 from evaluate import test_step, METRICS
 
-from jax.config import config
-
-config.update("jax_numpy_rank_promotion", "raise")
+jax.config.update("jax_numpy_rank_promotion", "raise")
 
 
 PATIENCE = 100
