@@ -74,7 +74,7 @@ def train_step(batch, state, key, net):
     # Convert from normalized to to pixel coordinates
     scale = img.shape[1] / 2
     for key in ["snake", "snake_steps", "contour"]:
-        terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
+        terms[key] = jax.tree.map(lambda x: scale * (1.0 + x), terms[key])
 
     for m in METRICS:
         metrics[m] = jnp.mean(losses.call_loss(METRICS[m], terms)[0])
@@ -159,7 +159,7 @@ if __name__ == "__main__":
                     val_metrics[m] = []
                 val_metrics[m].append(metrics[m])
 
-            out = jax.tree_map(lambda x: x[0], out)  # Select first example from batch
+            out = jax.tree.map(lambda x: x[0], out)  # Select first example from batch
             logging.log_anim(out, f"Animated/{step}", epoch)
             if "segmentation" in out:
                 logging.log_segmentation(out, f"Segmentation/{step}", epoch)

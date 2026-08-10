@@ -71,7 +71,7 @@ def test_step(batch, state, key, net):
     # Convert from normalized to to pixel coordinates
     scale = imagery.shape[1] / 2
     for key in ["snake", "snake_steps", "contour"]:
-        terms[key] = jax.tree_map(lambda x: scale * (1.0 + x), terms[key])
+        terms[key] = jax.tree.map(lambda x: scale * (1.0 + x), terms[key])
 
     metrics = {}
     for m in METRICS:
@@ -147,8 +147,8 @@ if __name__ == "__main__":
                 test_metrics[m].append(metrics[m])
 
             # for i in range(len(output['imagery'])):
-            #   samples = jax.tree_map(lambda x: x[i], all_samples)
-            #   o = jax.tree_map(lambda x: x[i], output)
+            #   samples = jax.tree.map(lambda x: x[i], all_samples)
+            #   o = jax.tree.map(lambda x: x[i], output)
 
             #   raw = Image.fromarray((255 * np.asarray(o['imagery'][..., 0])).astype(np.uint8))
             #   base = 0.5 * (o['imagery'] + 1.0)
